@@ -1,0 +1,1 @@
+# Guilherme é um MERDA completo,Goku é foda
