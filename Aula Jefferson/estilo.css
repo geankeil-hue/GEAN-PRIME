@@ -29,5 +29,17 @@
 .nav-links a:hover {
  color: #4338ca;
 }
+.sobre {
+ display: grid;
+ grid-template-columns: 1.5fr 1fr;
+ gap: 24px;
+}
+.card-metrica {
+ background: #f8fafc;
+ border: 1px solid #e2e8f0;
+ padding: 12px;
+ text-align: center;
+ border-radius: 6px;
+}
 
 
