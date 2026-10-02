@@ -121,16 +121,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Links da Barra de Navegação Superior
-  const navLinks = document.querySelectorAll('.nav-links a');
-  navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      if (!link.classList.contains('btn-orange')) {
+ // Links da Barra de Navegação Superior
+const navLinks = document.querySelectorAll('.nav-links a');
+
+navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+
+        // Permite que links que possuem href real funcionem normalmente
+        const destino = link.getAttribute('href');
+
+        if (destino && destino !== '#') {
+            return;
+        }
+
+        // Impede apenas os links que ainda não possuem uma página definida
         e.preventDefault();
+
         const sectionName = link.textContent.trim();
         console.log(`Navegar para: ${sectionName}`);
-      }
     });
-  });
+});
 
 });
