@@ -138,6 +138,161 @@
             color: var(--branco);
         }
 
+        .publish-section {
+            max-width: 1180px;
+            margin: 0 auto 70px;
+            padding: 0 6.5%;
+        }
+
+        .publish-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 28px;
+        }
+
+        .publish-form,
+        .publish-list {
+            background: rgba(12, 35, 58, 0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .publish-form h3,
+        .publish-list h3 {
+            font-size: 28px;
+            margin-bottom: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            font-size: 13px;
+            color: #dfeaf5;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: var(--branco);
+            font-size: 15px;
+            outline: none;
+        }
+
+        .field textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .field input::placeholder,
+        .field textarea::placeholder {
+            color: rgba(255,255,255,0.55);
+        }
+
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus {
+            border-color: rgba(255, 105, 0, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 105, 0, 0.12);
+        }
+
+        .submit-row {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .cargas-list {
+            display: grid;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .carga-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .carga-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .carga-top strong {
+            font-size: 18px;
+        }
+
+        .carga-preco {
+            color: #ffb067;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .carga-fee {
+            margin-top: 10px;
+            color: #ffd1a0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .carga-meta {
+            color: #dfeaf5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            padding: 18px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: #dfeaf5;
+            text-align: center;
+            background: rgba(255,255,255,0.02);
+        }
+
+        @media (max-width: 900px) {
+            .publish-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .user-panel {
             display: flex;
             align-items: center;
@@ -916,6 +1071,68 @@
 
         </section>
 
+        <section class="publish-section" aria-label="Publicar carga">
+            <div class="publish-card">
+                <div class="publish-form">
+                    <h3>Publicar uma carga</h3>
+
+                    <form id="cargoForm">
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="origem">Origem</label>
+                                <input id="origem" name="origem" type="text" placeholder="Ex.: São Paulo - SP" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="destino">Destino</label>
+                                <input id="destino" name="destino" type="text" placeholder="Ex.: Curitiba - PR" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="tipo">Tipo da carga</label>
+                                <select id="tipo" name="tipo" required>
+                                    <option value="">Selecione</option>
+                                    <option value="Granel">Granel</option>
+                                    <option value="Carga seca">Carga seca</option>
+                                    <option value="Refrigerado">Refrigerado</option>
+                                    <option value="Sider">Sider</option>
+                                    <option value="Agrícola">Agrícola</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label for="peso">Peso / volume</label>
+                                <input id="peso" name="peso" type="text" placeholder="Ex.: 18,5 toneladas" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="data">Data prevista</label>
+                                <input id="data" name="data" type="date" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="valor">Valor do frete</label>
+                                <input id="valor" name="valor" type="text" placeholder="Ex.: R$ 4.800,00" required>
+                            </div>
+
+                            <div class="field full">
+                                <label for="observacoes">Observações</label>
+                                <textarea id="observacoes" name="observacoes" placeholder="Descreva detalhes da carga, requisitos especiais ou observações importantes."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="submit-row">
+                            <button type="submit" class="btn btn-orange">Publicar carga</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="publish-list">
+                    <h3>Minhas cargas</h3>
+                    <div id="cargasLista" class="cargas-list" aria-live="polite"></div>
+                </div>
+            </div>
+        </section>
 
         <!-- CHAMADA FINAL -->
         <section class="final-cta">
@@ -951,6 +1168,119 @@
             loginLink: 'login-embarcadores.html',
             redirectAfterLogout: 'index.html'
         });
+
+        const STORAGE_KEY = 'freteConectaCargas';
+        const cargoForm = document.getElementById('cargoForm');
+        const cargasLista = document.getElementById('cargasLista');
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        function parseCurrencyValue(value) {
+            if (!value) return 0;
+            const valor = String(value).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+            const numero = Number(valor);
+            return Number.isFinite(numero) ? numero : 0;
+        }
+
+        function getCargas() {
+            try {
+                const carregadas = localStorage.getItem(STORAGE_KEY);
+                const lista = carregadas ? JSON.parse(carregadas) : [];
+                return Array.isArray(lista) ? lista : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function salvarCargas(cargas) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cargas));
+        }
+
+        function renderCargas() {
+            const usuario = FreteConectaAuth.currentUser();
+            if (!usuario || !cargasLista) {
+                return;
+            }
+
+            const minhasCargas = getCargas().filter((carga) => carga.userId === usuario.id || carga.userEmail === usuario.email);
+
+            if (!minhasCargas.length) {
+                cargasLista.innerHTML = '<div class="empty-state">Ainda não há cargas publicadas. Use o formulário acima para anunciar sua primeira carga.</div>';
+                return;
+            }
+
+            cargasLista.innerHTML = minhasCargas.map((carga) => {
+                const valorFrete = parseCurrencyValue(carga.valor);
+                const taxaSite = Number(carga.taxaPlataforma || (valorFrete * 0.05));
+
+                return `
+                    <article class="carga-card">
+                        <div class="carga-top">
+                            <strong>${carga.origem} → ${carga.destino}</strong>
+                            <span class="carga-preco">${carga.valor}</span>
+                        </div>
+                        <div class="carga-fee">Taxa Frete Conecta (5%): ${formatCurrency(taxaSite)}</div>
+                        <div class="carga-meta">
+                            <div><strong>Tipo:</strong> ${carga.tipo}</div>
+                            <div><strong>Peso:</strong> ${carga.peso}</div>
+                            <div><strong>Data:</strong> ${new Date(carga.data).toLocaleDateString('pt-BR')}</div>
+                            ${carga.observacoes ? `<div><strong>Obs:</strong> ${carga.observacoes}</div>` : ''}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        if (cargoForm) {
+            cargoForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const usuario = FreteConectaAuth.currentUser();
+                if (!usuario) {
+                    window.location.href = 'login-embarcadores.html';
+                    return;
+                }
+
+                const valorOriginal = document.getElementById('valor').value.trim();
+                const valorFrete = parseCurrencyValue(valorOriginal);
+                const taxaPlataforma = valorFrete * 0.05;
+
+                const carga = {
+                    id: Date.now().toString(),
+                    userId: usuario.id,
+                    userEmail: usuario.email,
+                    origem: document.getElementById('origem').value.trim(),
+                    destino: document.getElementById('destino').value.trim(),
+                    tipo: document.getElementById('tipo').value,
+                    peso: document.getElementById('peso').value.trim(),
+                    data: document.getElementById('data').value,
+                    valor: valorOriginal,
+                    taxaPlataforma: taxaPlataforma,
+                    valorLiquido: valorFrete - taxaPlataforma,
+                    observacoes: document.getElementById('observacoes').value.trim(),
+                    createdAt: new Date().toISOString()
+                };
+
+                if (!carga.origem || !carga.destino || !carga.tipo || !carga.peso || !carga.data || !carga.valor) {
+                    alert('Preencha todos os campos obrigatórios para publicar a carga.');
+                    return;
+                }
+
+                const cargas = getCargas();
+                cargas.unshift(carga);
+                salvarCargas(cargas);
+                cargoForm.reset();
+                renderCargas();
+                alert('✅ Carga publicada com sucesso! A taxa da plataforma é de 5% sobre o valor da entrega.');
+            });
+        }
+
+        renderCargas();
     </script>
 
 </body>
