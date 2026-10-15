@@ -6,6 +6,62 @@
   <title>Frete Conecta</title>
   <link rel="stylesheet" href="style.css" />
   <script src="script.js" defer></script>
+  <style>
+    .user-panel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 12px;
+      flex-wrap: wrap;
+    }
+
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .user-area-link,
+    .user-login-link,
+    .user-logout-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      transition: 0.25s ease;
+    }
+
+    .user-area-link,
+    .user-login-link {
+      background: rgba(255, 115, 0, 0.12);
+      color: #ffb067;
+      border: 1px solid rgba(255, 115, 0, 0.35);
+    }
+
+    .user-logout-btn {
+      background: transparent;
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .user-logout-btn:hover,
+    .user-login-link:hover,
+    .user-area-link:hover {
+      transform: translateY(-1px);
+    }
+  </style>
 </head>
 <body>
   <header class="navbar">
@@ -22,6 +78,7 @@
       <a href="login.html">Entrar</a>
       <a href="cadastro-caminhoneiros.html" class="Criar-conta">Criar conta →</a>
     </nav>
+    <div class="user-panel" aria-live="polite"></div>
   </header>
 
   <section class="hero">
@@ -93,5 +150,14 @@
       <p>Pagamento transparente, verificações de documentos e rastreio da operação em todas as etapas.</p>
     </div>
   </section>
+
+  <script src="auth.js"></script>
+  <script>
+    FreteConectaAuth.setupUserMenu({
+      containerSelector: '.user-panel',
+      loginLink: 'login.html',
+      redirectAfterLogout: 'index.html'
+    });
+  </script>
 </body>
 </html>

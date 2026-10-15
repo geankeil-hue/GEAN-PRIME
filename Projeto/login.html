@@ -727,6 +727,7 @@
          JAVASCRIPT
     ========================== -->
 
+    <script src="auth.js"></script>
     <script>
 
         function mostrarSenha() {
@@ -763,13 +764,23 @@
                 return;
             }
 
+            const usuario = FreteConectaAuth.login(email, senha, 'caminhoneiro');
+
+            if (!usuario) {
+                mensagem.style.display = "block";
+                mensagem.style.background = "#ffe5e5";
+                mensagem.style.color = "#c62828";
+                mensagem.innerHTML = "⚠️ E-mail/CPF ou senha inválidos para caminhoneiro.";
+                return;
+            }
+
             mensagem.style.display = "block";
             mensagem.style.background = "#e2f7e8";
             mensagem.style.color = "#16823b";
             mensagem.innerHTML = "✓ Login realizado com sucesso!";
 
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'para-caminhoneiros.html';
             }, 1200);
         }
 

@@ -111,6 +111,55 @@
             transform: translateY(-2px);
         }
 
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: 12px;
+            flex-wrap: wrap;
+        }
+
+        .user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .user-area-link,
+        .user-login-link,
+        .user-logout-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.25s ease;
+            text-decoration: none;
+        }
+
+        .user-area-link,
+        .user-login-link {
+            background: rgba(255, 115, 0, 0.14);
+            color: #ffbd7d;
+            border: 1px solid rgba(255,155,67,0.35);
+        }
+
+        .user-logout-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
         /* ==============================
            CONTEÚDO PRINCIPAL
         ============================== */
@@ -711,6 +760,8 @@
 
             </nav>
 
+            <div class="user-panel" aria-live="polite"></div>
+
         </header>
 
 
@@ -1055,6 +1106,15 @@
 
     </section>
 
+    <script src="auth.js"></script>
+    <script>
+        FreteConectaAuth.requireAuth('caminhoneiro', 'login.html');
+        FreteConectaAuth.setupUserMenu({
+            containerSelector: '.user-panel',
+            loginLink: 'login.html',
+            redirectAfterLogout: 'index.html'
+        });
+    </script>
 
 </body>
 </html>

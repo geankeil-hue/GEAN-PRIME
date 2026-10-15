@@ -138,6 +138,55 @@
             color: var(--branco);
         }
 
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--branco);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .user-area-link,
+        .user-login-link,
+        .user-logout-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.25s ease;
+            text-decoration: none;
+        }
+
+        .user-area-link,
+        .user-login-link {
+            background: rgba(255, 105, 0, 0.12);
+            color: #ffbe8e;
+            border: 1px solid rgba(255, 105, 0, 0.35);
+        }
+
+        .user-logout-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--branco);
+        }
+
         .btn-outline:hover {
             background: rgba(255,255,255,0.1);
         }
@@ -634,9 +683,11 @@
             </a>
         </nav>
 
-        <a href="cadastro-caminhoneiros.html" class="btn btn-orange">
+        <a href="cadastro-embarcadores.html" class="btn btn-orange">
             Criar conta →
         </a>
+
+        <div class="user-panel" aria-live="polite"></div>
 
     </header>
 
@@ -891,6 +942,16 @@
     <footer>
         © 2026 Frete Conecta. Conectando cargas e caminhos.
     </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        FreteConectaAuth.requireAuth('embarcador', 'login-embarcadores.html');
+        FreteConectaAuth.setupUserMenu({
+            containerSelector: '.user-panel',
+            loginLink: 'login-embarcadores.html',
+            redirectAfterLogout: 'index.html'
+        });
+    </script>
 
 </body>
 </html>

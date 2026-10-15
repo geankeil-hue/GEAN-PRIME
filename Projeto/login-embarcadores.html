@@ -522,7 +522,7 @@
 
           <div class="divisor">ou</div>
 
-          <button class="btn-secundario" type="button" onclick="window.location.href='cadastro-caminhoneiros.html'">Criar conta</button>
+          <button class="btn-secundario" type="button" onclick="window.location.href='cadastro-embarcadores.html'">Criar conta</button>
 
           <div class="conta-rapida">
             <p>Quer anunciar fretes agora?</p>
@@ -535,6 +535,7 @@
     </main>
   </div>
 
+  <script src="auth.js"></script>
   <script>
     function mostrarSenha() {
       const senha = document.getElementById('senha');
@@ -561,6 +562,16 @@
         mensagem.style.background = '#ffe2e2';
         mensagem.style.color = '#b42318';
         mensagem.textContent = '⚠️ Preencha e-mail e senha para continuar.';
+        return;
+      }
+
+      const usuario = FreteConectaAuth.login(email, senha, 'embarcador');
+
+      if (!usuario) {
+        mensagem.style.display = 'block';
+        mensagem.style.background = '#ffe2e2';
+        mensagem.style.color = '#b42318';
+        mensagem.textContent = '⚠️ E-mail ou senha inválidos para embarcador.';
         return;
       }
 
