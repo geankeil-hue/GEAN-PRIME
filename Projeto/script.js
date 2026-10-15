@@ -96,12 +96,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const navLinks = document.querySelectorAll('.nav-links a[href="#"]');
-  navLinks.forEach((link) => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      const sectionName = link.textContent.trim();
-      console.log(`Navegar para: ${sectionName}`);
-    });
+  const sectionLinks = document.querySelectorAll('a[href^="#"]');
+  sectionLinks.forEach((link) => {
+    const target = document.querySelector(link.getAttribute('href'));
+
+    if (target) {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   });
 });
