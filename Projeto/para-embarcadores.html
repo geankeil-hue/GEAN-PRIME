@@ -266,6 +266,26 @@
             font-weight: 700;
         }
 
+        .resumo-fee {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 105, 0, 0.12);
+            border: 1px solid rgba(255, 105, 0, 0.3);
+            margin-bottom: 16px;
+            color: #ffe7d2;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .resumo-fee strong {
+            color: #fff;
+            font-size: 18px;
+        }
+
         .carga-meta {
             color: #dfeaf5;
             font-size: 14px;
@@ -1129,6 +1149,10 @@
 
                 <div class="publish-list">
                     <h3>Minhas cargas</h3>
+                    <div class="resumo-fee">
+                        <span>Ganho do site (5%):</span>
+                        <strong id="resumoTaxaSite">R$ 0,00</strong>
+                    </div>
                     <div id="cargasLista" class="cargas-list" aria-live="polite"></div>
                 </div>
             </div>
@@ -1172,12 +1196,15 @@
         const STORAGE_KEY = 'freteConectaCargas';
         const cargoForm = document.getElementById('cargoForm');
         const cargasLista = document.getElementById('cargasLista');
+        const resumoTaxaSite = document.getElementById('resumoTaxaSite');
 
         function formatCurrency(value) {
-            return Number(value || 0).toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
+            return Number(value || 0)
+                .toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                })
+                .replace(/\u00A0/g, ' ');
         }
 
         function parseCurrencyValue(value) {
@@ -1208,15 +1235,28 @@
             }
 
             const minhasCargas = getCargas().filter((carga) => carga.userId === usuario.id || carga.userEmail === usuario.email);
+            const totalTaxaSite = minhasCargas.reduce((total, carga) => {
+                const valorFrete = parseCurrencyValue(carga.valor);
+                const taxaSite = Number(carga.taxaPlataforma || (valorFrete * 0.05));
+                return total + taxaSite;
+            }, 0);
+
+            if (resumoTaxaSite) {
+                resumoTaxaSite.textContent = formatCurrency(totalTaxaSite);
+            }
 
             if (!minhasCargas.length) {
                 cargasLista.innerHTML = '<div class="empty-state">Ainda não há cargas publicadas. Use o formulário acima para anunciar sua primeira carga.</div>';
+                if (resumoTaxaSite) {
+                    resumoTaxaSite.textContent = 'R$ 0,00';
+                }
                 return;
             }
 
             cargasLista.innerHTML = minhasCargas.map((carga) => {
                 const valorFrete = parseCurrencyValue(carga.valor);
                 const taxaSite = Number(carga.taxaPlataforma || (valorFrete * 0.05));
+                const valorLiquido = Number(carga.valorLiquido || (valorFrete - taxaSite));
 
                 return `
                     <article class="carga-card">
@@ -1224,11 +1264,12 @@
                             <strong>${carga.origem} → ${carga.destino}</strong>
                             <span class="carga-preco">${carga.valor}</span>
                         </div>
-                        <div class="carga-fee">Taxa Frete Conecta (5%): ${formatCurrency(taxaSite)}</div>
+                        <div class="carga-fee">Site ganhou (5%): ${formatCurrency(taxaSite)}</div>
                         <div class="carga-meta">
                             <div><strong>Tipo:</strong> ${carga.tipo}</div>
                             <div><strong>Peso:</strong> ${carga.peso}</div>
                             <div><strong>Data:</strong> ${new Date(carga.data).toLocaleDateString('pt-BR')}</div>
+                            <div><strong>Valor líquido do embarcador:</strong> ${formatCurrency(valorLiquido)}</div>
                             ${carga.observacoes ? `<div><strong>Obs:</strong> ${carga.observacoes}</div>` : ''}
                         </div>
                     </article>
