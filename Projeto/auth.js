@@ -37,6 +37,7 @@
     const users = readUsers();
     const valor = normalize(identificador);
     const senhaDigitada = String(senha || '').trim();
+    const targetRole = role || 'embarcador';
 
     return users.find((user) => {
       const userParsed = parseUser(user);
@@ -44,7 +45,7 @@
       const cpfMatch = normalize(userParsed.cpf) === valor;
       const cnpjMatch = normalize(userParsed.cnpj) === valor;
       const senhaMatch = userParsed.senha === senhaDigitada;
-      const roleMatch = !role || userParsed.role === role;
+      const roleMatch = userParsed.role === targetRole;
 
       return (emailMatch || cpfMatch || cnpjMatch) && senhaMatch && roleMatch;
     });
@@ -94,7 +95,7 @@
       }
 
       if (!current) {
-        const loginLink = options.loginLink || 'login.html';
+        const loginLink = options.loginLink || 'login-embarcadores.html';
         container.innerHTML = '<a href="' + loginLink + '" class="user-login-link">Entrar</a>';
         return current;
       }
@@ -123,7 +124,7 @@
     },
     register(userData) {
       const users = readUsers();
-      const payload = parseUser(userData);
+      const payload = parseUser({ ...userData, role: 'embarcador' });
       const email = normalize(payload.email);
       const cpf = normalize(payload.cpf);
       const cnpj = normalize(payload.cnpj);
@@ -148,7 +149,7 @@
       const novoUsuario = {
         ...payload,
         id: payload.id || Date.now().toString(),
-        role: payload.role || 'caminhoneiro',
+        role: 'embarcador',
         createdAt: payload.createdAt || new Date().toISOString()
       };
 
@@ -158,7 +159,7 @@
       return { ...novoUsuario, senha: undefined };
     },
     login(identificador, senha, role) {
-      const user = findUserByCredentials(identificador, senha, role);
+      const user = findUserByCredentials(identificador, senha, role || 'embarcador');
 
       if (!user) {
         return null;

@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnFindCargo) {
     btnFindCargo.addEventListener('click', (event) => {
       event.preventDefault();
-      window.location.href = 'login.html';
+      window.location.href = 'login-embarcadores.html';
     });
   }
 
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnPublishCargo) {
     btnPublishCargo.addEventListener('click', (event) => {
       event.preventDefault();
-      window.location.href = 'cadastro-caminhoneiros.html';
+      window.location.href = 'cadastro-embarcadores.html';
     });
   }
 

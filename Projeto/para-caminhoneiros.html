@@ -713,6 +713,9 @@
 </head>
 
 <body>
+<script>
+    window.location.href = 'para-embarcadores.html';
+</script>
 
 
     <!-- =========================================
@@ -1108,10 +1111,10 @@
 
     <script src="auth.js"></script>
     <script>
-        FreteConectaAuth.requireAuth('caminhoneiro', 'login.html');
+        FreteConectaAuth.requireAuth('embarcador', 'login-embarcadores.html');
         FreteConectaAuth.setupUserMenu({
             containerSelector: '.user-panel',
-            loginLink: 'login.html',
+            loginLink: 'login-embarcadores.html',
             redirectAfterLogout: 'index.html'
         });
     </script>
