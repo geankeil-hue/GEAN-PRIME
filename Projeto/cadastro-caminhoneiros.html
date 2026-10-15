@@ -786,19 +786,19 @@
 
         <nav class="nav-links">
 
-            <a href="caminhoneiros.html">
+            <a href="para-caminhoneiros.html">
                 Para caminhoneiros
             </a>
 
-            <a href="embarcadores.html">
+            <a href="para-embarcadores.html">
                 Para embarcadores
             </a>
 
-            <a href="#como-funciona">
+            <a href="index.html#como-funciona">
                 Como funciona
             </a>
 
-            <a href="#seguranca">
+            <a href="index.html#seguranca">
                 Segurança
             </a>
 
@@ -1488,22 +1488,16 @@
 
                 evento.preventDefault();
 
-
-                /*
-                 * Aqui futuramente você poderá
-                 * enviar os dados para seu backend.
-                 */
-
-
-                mensagem.style.display =
-                    "block";
-
-
+                mensagem.style.display = "block";
+                mensagem.textContent = "✓ Cadastro realizado com sucesso! Redirecionando para o login...";
                 mensagem.scrollIntoView({
                     behavior: "smooth",
                     block: "center"
                 });
 
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
             }
         );
 

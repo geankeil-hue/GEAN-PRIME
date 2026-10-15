@@ -375,6 +375,43 @@ body {
     font-size: 0.95rem;
 }
 
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 40px auto 80px;
+    padding: 0 80px;
+}
+
+.info-card {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
+}
+
+.info-tag {
+    display: inline-block;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.info-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+}
+
+.info-card p {
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
 
 /* =========================
    RESPONSIVO
@@ -430,6 +467,11 @@ body {
     .hero-features {
         flex-direction: column;
         gap: 8px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        padding: 0 20px;
     }
 }
 #botaoCriarConta {

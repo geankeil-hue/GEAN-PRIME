@@ -503,13 +503,13 @@
             </div>
 
             <nav>
-                <a href="#">Para caminhoneiros</a>
-                <a href="#">Para embarcadores</a>
-                <a href="#">Como funciona</a>
-                <a href="#">Segurança</a>
-                <a href="#">Entrar</a>
+                <a href="para-caminhoneiros.html">Para caminhoneiros</a>
+                <a href="para-embarcadores.html">Para embarcadores</a>
+                <a href="index.html#como-funciona">Como funciona</a>
+                <a href="index.html#seguranca">Segurança</a>
+                <a href="login.html">Entrar</a>
 
-                <a href="#" class="btn-criar">
+                <a href="cadastro-caminhoneiros.html" class="btn-criar">
                     Criar conta →
                 </a>
             </nav>
@@ -703,16 +703,18 @@
                 >
                     👤+ &nbsp; Criar uma conta
                 </button>
+
                 <div class="cadastro-caminhoneiros">
-    <p>É caminhoneiro?</p>
+                    <p>É caminhoneiro?</p>
 
-    <span>
-        Cadastre-se para encontrar novas oportunidades de frete.
-    </span>
+                    <span>
+                        Cadastre-se para encontrar novas oportunidades de frete.
+                    </span>
 
-    <a href="cadastro-caminhoneiros.html">
-        🚚 Cadastro para caminhoneiros →
-    </a>
+                    <a href="cadastro-caminhoneiros.html">
+                        🚚 Cadastro para caminhoneiros →
+                    </a>
+                </div>
 
                 <div id="mensagem"></div>
 
@@ -748,8 +750,8 @@
 
         function entrar() {
 
-            const email = document.getElementById("email").value;
-            const senha = document.getElementById("senha").value;
+            const email = document.getElementById("email").value.trim();
+            const senha = document.getElementById("senha").value.trim();
             const mensagem = document.getElementById("mensagem");
 
             if (email === "" || senha === "") {
@@ -757,24 +759,18 @@
                 mensagem.style.display = "block";
                 mensagem.style.background = "#ffe5e5";
                 mensagem.style.color = "#c62828";
-
-                mensagem.innerHTML =
-                    "⚠️ Preencha o e-mail/CPF e a senha.";
-
+                mensagem.innerHTML = "⚠️ Preencha o e-mail/CPF e a senha.";
                 return;
             }
 
             mensagem.style.display = "block";
             mensagem.style.background = "#e2f7e8";
             mensagem.style.color = "#16823b";
+            mensagem.innerHTML = "✓ Login realizado com sucesso!";
 
-            mensagem.innerHTML =
-                "✓ Login realizado com sucesso!";
-
-            /*
-                Aqui você poderá futuramente
-                conectar o login ao seu banco de dados.
-            */
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1200);
         }
 
 
@@ -785,18 +781,12 @@
             mensagem.style.display = "block";
             mensagem.style.background = "#e8f1ff";
             mensagem.style.color = "#1769aa";
-
-            mensagem.innerHTML =
-                "📧 Enviaremos as instruções para recuperação da senha.";
+            mensagem.innerHTML = "📧 Enviaremos as instruções para recuperação da senha.";
         }
 
 
         function criarConta() {
-
-            alert(
-                "Página de criação de conta será aberta aqui."
-            );
-
+            window.location.href = 'cadastro-caminhoneiros.html';
         }
 
     </script>
