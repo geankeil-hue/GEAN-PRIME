@@ -1312,12 +1312,20 @@
                     return;
                 }
 
-                const cargas = getCargas();
-                cargas.unshift(carga);
-                salvarCargas(cargas);
+                const cargaPublicada = FreteConectaAuth.publishCarga({
+                    origem: carga.origem,
+                    destino: carga.destino,
+                    tipo: carga.tipo,
+                    peso: carga.peso,
+                    data: carga.data,
+                    valor: carga.valor,
+                    observacoes: carga.observacoes
+                });
+
                 cargoForm.reset();
                 renderCargas();
                 alert('✅ Carga publicada com sucesso! A taxa da plataforma é de 5% sobre o valor da entrega.');
+                console.log('Carga publicada:', cargaPublicada);
             });
         }
 

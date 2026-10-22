@@ -19,6 +19,20 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
   }
 
+  function readCargas() {
+    try {
+      const saved = localStorage.getItem('freteConectaCargas');
+      const lista = saved ? JSON.parse(saved) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function writeCargas(cargas) {
+    localStorage.setItem('freteConectaCargas', JSON.stringify(cargas));
+  }
+
   function parseUser(user) {
     if (!user) return null;
     const role = user.role || 'caminhoneiro';
@@ -54,6 +68,7 @@
 
   window.FreteConectaAuth = {
     getUsers: readUsers,
+    getCargas: readCargas,
     logout() {
       localStorage.removeItem(SESSION_KEY);
       return true;
@@ -182,6 +197,79 @@
       const sessionUser = { ...parseUser(user), senha: undefined };
       localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
       return sessionUser;
+    },
+    publishCarga(carga) {
+      const usuario = this.currentUser();
+      if (!usuario) {
+        throw new Error('Faça login para publicar uma carga.');
+      }
+      if (usuario.role !== 'embarcador') {
+        throw new Error('Apenas embarcadores podem publicar cargas.');
+      }
+
+      const payload = {
+        id: carga && carga.id ? String(carga.id) : `carga-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        userId: usuario.id,
+        userEmail: usuario.email,
+        origem: String(carga?.origem || '').trim(),
+        destino: String(carga?.destino || '').trim(),
+        tipo: String(carga?.tipo || '').trim(),
+        peso: String(carga?.peso || '').trim(),
+        data: String(carga?.data || '').trim(),
+        valor: String(carga?.valor || '').trim(),
+        observacoes: String(carga?.observacoes || '').trim(),
+        status: 'disponivel',
+        caminhoneiroId: '',
+        caminhoneiroNome: '',
+        createdAt: new Date().toISOString()
+      };
+
+      if (!payload.origem || !payload.destino || !payload.tipo || !payload.peso || !payload.data || !payload.valor) {
+        throw new Error('Preencha todos os campos obrigatórios para publicar a carga.');
+      }
+
+      const cargas = readCargas();
+      cargas.unshift(payload);
+      writeCargas(cargas);
+      return payload;
+    },
+    getCargasDisponiveis() {
+      return readCargas()
+        .filter((carga) => !carga.status || carga.status === 'disponivel')
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    },
+    acceptCarga(cargaId) {
+      const usuario = this.currentUser();
+      if (!usuario) {
+        throw new Error('Faça login para aceitar uma carga.');
+      }
+      if (usuario.role !== 'caminhoneiro') {
+        throw new Error('Apenas caminhoneiros podem aceitar uma carga.');
+      }
+
+      const cargas = readCargas();
+      const index = cargas.findIndex((carga) => String(carga.id) === String(cargaId));
+
+      if (index === -1) {
+        throw new Error('Carga não encontrada.');
+      }
+
+      const carga = cargas[index];
+      if (carga.status === 'aceita' && carga.caminhoneiroId && carga.caminhoneiroId !== usuario.id) {
+        throw new Error('Esta carga já foi aceita por outro caminhoneiro.');
+      }
+
+      const atualizada = {
+        ...carga,
+        status: 'aceita',
+        caminhoneiroId: usuario.id,
+        caminhoneiroNome: usuario.nome || usuario.email,
+        transportador: usuario.nome || usuario.email
+      };
+
+      cargas[index] = atualizada;
+      writeCargas(cargas);
+      return atualizada;
     }
   };
 })();

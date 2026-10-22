@@ -1113,6 +1113,74 @@
             loginLink: 'login.html',
             redirectAfterLogout: 'index.html'
         });
+
+        function formatCurrency(value) {
+            return Number(value || 0)
+                .toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                })
+                .replace(/\u00A0/g, ' ');
+        }
+
+        function renderCargasDisponiveis() {
+            const dashboard = document.querySelector('.dashboard');
+            if (!dashboard) {
+                return;
+            }
+
+            const cargas = FreteConectaAuth.getCargasDisponiveis();
+            const cards = document.querySelectorAll('.dashboard .offer');
+            cards.forEach((card) => card.remove());
+
+            if (!cargas.length) {
+                const fallback = document.createElement('div');
+                fallback.className = 'empty-offers';
+                fallback.textContent = 'Ainda não há cargas disponíveis para você aceitar no momento.';
+                dashboard.appendChild(fallback);
+                return;
+            }
+
+            cargas.forEach((carga) => {
+                const card = document.createElement('div');
+                card.className = 'offer';
+                card.innerHTML = `
+                    <div class="offer-left">
+                        <div class="route">
+                            📍 ${carga.origem}
+                            <span>→</span>
+                            📍 ${carga.destino}
+                        </div>
+                        <div class="details">
+                            📦 ${carga.tipo} &nbsp;·&nbsp;
+                            ${carga.peso} &nbsp;·&nbsp;
+                            ${new Date(carga.data).toLocaleDateString('pt-BR')}
+                        </div>
+                    </div>
+                    <div class="offer-right">
+                        <div class="price">${formatCurrency(Number(String(carga.valor).replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0)}</div>
+                        <div class="verified">✓ Carga verificada</div>
+                        <button type="button" class="selecionar-carga-btn" data-carga-id="${carga.id}">Aceitar carga</button>
+                    </div>
+                `;
+                dashboard.appendChild(card);
+            });
+
+            dashboard.querySelectorAll('.selecionar-carga-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const id = button.dataset.cargaId;
+                    try {
+                        const cargaAceita = FreteConectaAuth.acceptCarga(id);
+                        alert(`✅ Carga aceita com sucesso! Você vai levar ${cargaAceita.origem} → ${cargaAceita.destino}.`);
+                        renderCargasDisponiveis();
+                    } catch (erro) {
+                        alert('⚠️ ' + erro.message);
+                    }
+                });
+            });
+        }
+
+        renderCargasDisponiveis();
     </script>
 
 </body>
