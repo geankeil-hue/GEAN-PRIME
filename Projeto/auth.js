@@ -79,12 +79,18 @@
         'a[href="login.html"]',
         'a[href="login-embarcadores.html"]',
         'a[href="login-destinatario.html"]',
+        'a[href*="cadastro-"]',
+        'a[href="cadastro-caminhoneiros.html"]',
+        'a[href="cadastro-embarcadores.html"]',
+        'a[href="cadastro-destinatario.html"]',
         '.Encontrar-cargas',
         '.Publicar-uma-carga',
         '.btn-login',
         '.btn-entrar',
         'button[onclick*="entrar"]',
-        'a[onclick*="entrar"]'
+        'button[onclick*="criar"]',
+        'a[onclick*="entrar"]',
+        'a[onclick*="criar"]'
       ];
 
       document.querySelectorAll(selectors.join(',')).forEach((element) => {
