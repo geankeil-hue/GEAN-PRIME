@@ -124,7 +124,8 @@
     },
     register(userData) {
       const users = readUsers();
-      const payload = parseUser({ ...userData, role: 'embarcador' });
+      const role = (userData && userData.role) || 'embarcador';
+      const payload = parseUser({ ...userData, role });
       const email = normalize(payload.email);
       const cpf = normalize(payload.cpf);
       const cnpj = normalize(payload.cnpj);
@@ -149,7 +150,7 @@
       const novoUsuario = {
         ...payload,
         id: payload.id || Date.now().toString(),
-        role: 'embarcador',
+        role: payload.role,
         createdAt: payload.createdAt || new Date().toISOString()
       };
 
