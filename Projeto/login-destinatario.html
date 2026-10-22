@@ -209,6 +209,16 @@
 
   <script src="auth.js"></script>
   <script>
+    const usuarioAtual = FreteConectaAuth.currentUser();
+    if (usuarioAtual) {
+      const rota = usuarioAtual.role === 'embarcador'
+        ? 'para-embarcadores.html'
+        : usuarioAtual.role === 'destinatario'
+          ? 'para-destinatarios.html'
+          : 'para-caminhoneiros.html';
+      window.location.href = rota;
+    }
+
     function mostrarSenha() {
       const senha = document.getElementById('senha');
       const botao = document.getElementById('botaoSenha');

@@ -69,6 +69,33 @@
   window.FreteConectaAuth = {
     getUsers: readUsers,
     getCargas: readCargas,
+    hideLoginOptions() {
+      const current = this.currentUser();
+      if (!current) {
+        return false;
+      }
+
+      const selectors = [
+        'a[href="login.html"]',
+        'a[href="login-embarcadores.html"]',
+        'a[href="login-destinatario.html"]',
+        '.Encontrar-cargas',
+        '.Publicar-uma-carga',
+        '.btn-login',
+        '.btn-entrar',
+        'button[onclick*="entrar"]',
+        'a[onclick*="entrar"]'
+      ];
+
+      document.querySelectorAll(selectors.join(',')).forEach((element) => {
+        if (element) {
+          element.style.display = 'none';
+          element.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      return true;
+    },
     logout() {
       localStorage.removeItem(SESSION_KEY);
       return true;
@@ -148,6 +175,7 @@
         });
       }
 
+      this.hideLoginOptions();
       return current;
     },
     register(userData) {
@@ -272,4 +300,12 @@
       return atualizada;
     }
   };
+
+  if (document.readyState !== 'loading') {
+    window.FreteConectaAuth.hideLoginOptions();
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      window.FreteConectaAuth.hideLoginOptions();
+    });
+  }
 })();
