@@ -21,6 +21,7 @@
 
   function parseUser(user) {
     if (!user) return null;
+    const role = user.role || 'caminhoneiro';
     return {
       id: user.id || Date.now().toString(),
       nome: user.nome || '',
@@ -28,7 +29,7 @@
       cnpj: user.cnpj || '',
       email: user.email || '',
       senha: user.senha || '',
-      role: user.role || 'caminhoneiro',
+      role: ['caminhoneiro', 'embarcador', 'destinatario'].includes(role) ? role : 'caminhoneiro',
       createdAt: user.createdAt || new Date().toISOString()
     };
   }
@@ -74,12 +75,20 @@
       const current = this.currentUser();
 
       if (!current) {
-        window.location.href = redirectTo || (role === 'embarcador' ? 'login-embarcadores.html' : 'login.html');
+        window.location.href = redirectTo || (
+          role === 'embarcador' ? 'login-embarcadores.html' :
+          role === 'destinatario' ? 'login-destinatario.html' :
+          'login.html'
+        );
         return null;
       }
 
       if (role && current.role !== role) {
-        const fallback = current.role === 'embarcador' ? 'para-embarcadores.html' : 'para-caminhoneiros.html';
+        const fallback = current.role === 'embarcador'
+          ? 'para-embarcadores.html'
+          : current.role === 'destinatario'
+            ? 'para-destinatarios.html'
+            : 'para-caminhoneiros.html';
         window.location.href = fallback;
         return null;
       }
@@ -101,7 +110,11 @@
       }
 
       const nome = this.getDisplayName(current);
-      const areaPath = current.role === 'embarcador' ? 'para-embarcadores.html' : 'para-caminhoneiros.html';
+      const areaPath = current.role === 'embarcador'
+        ? 'para-embarcadores.html'
+        : current.role === 'destinatario'
+          ? 'para-destinatarios.html'
+          : 'para-caminhoneiros.html';
 
       container.innerHTML = `
         <div class="user-badge">
@@ -125,7 +138,7 @@
     register(userData) {
       const users = readUsers();
       const role = (userData && userData.role) || 'embarcador';
-      const payload = parseUser({ ...userData, role });
+      const payload = parseUser({ ...userData, role: ['caminhoneiro', 'embarcador', 'destinatario'].includes(role) ? role : 'caminhoneiro' });
       const email = normalize(payload.email);
       const cpf = normalize(payload.cpf);
       const cnpj = normalize(payload.cnpj);
