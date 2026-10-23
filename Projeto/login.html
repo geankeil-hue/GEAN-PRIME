@@ -800,12 +800,22 @@
 
         function esqueciSenha() {
 
+            const email = document.getElementById("email").value.trim();
             const mensagem = document.getElementById("mensagem");
+            const resultado = FreteConectaAuth.sendPasswordRecoveryEmail(email);
+
+            if (!resultado.success) {
+                mensagem.style.display = "block";
+                mensagem.style.background = "#ffe5e5";
+                mensagem.style.color = "#c62828";
+                mensagem.innerHTML = "⚠️ " + resultado.message;
+                return;
+            }
 
             mensagem.style.display = "block";
             mensagem.style.background = "#e8f1ff";
             mensagem.style.color = "#1769aa";
-            mensagem.innerHTML = "📧 Enviaremos as instruções para recuperação da senha.";
+            mensagem.innerHTML = "📧 Gmail de recuperação aberto para <strong>" + resultado.email + "</strong> com o código: <strong>" + resultado.codigo + "</strong>";
         }
 
 

@@ -267,11 +267,22 @@
     }
 
     function esqueciSenha() {
+      const email = document.getElementById('email').value.trim();
       const mensagem = document.getElementById('mensagem');
+      const resultado = FreteConectaAuth.sendPasswordRecoveryEmail(email);
+
+      if (!resultado.success) {
+        mensagem.style.display = 'block';
+        mensagem.style.background = '#ffe4e4';
+        mensagem.style.color = '#aa1f1f';
+        mensagem.textContent = '⚠️ ' + resultado.message;
+        return;
+      }
+
       mensagem.style.display = 'block';
       mensagem.style.background = '#edf4ff';
       mensagem.style.color = '#125ca8';
-      mensagem.textContent = '📧 Enviaremos as instruções para recuperação da senha.';
+      mensagem.textContent = '📧 Gmail de recuperação aberto para ' + resultado.email + ' com o código: ' + resultado.codigo;
     }
   </script>
 </body>

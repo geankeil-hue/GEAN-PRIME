@@ -114,6 +114,162 @@
         return null;
       }
     },
+    findUserByIdentifier(identificador) {
+      const users = readUsers();
+      const valor = normalize(String(identificador ?? ''));
+
+      if (!valor) {
+        return null;
+      }
+
+      return users.find((user) => {
+        const perfil = parseUser(user);
+        return normalize(perfil.email) === valor ||
+          normalize(perfil.cpf) === valor ||
+          normalize(perfil.cnpj) === valor;
+      }) || null;
+    },
+    sendPasswordRecoveryEmail(identificador) {
+      const usuario = this.findUserByIdentifier(identificador);
+
+      if (!usuario) {
+        return {
+          success: false,
+          message: 'Não encontramos uma conta com esse e-mail, CPF ou CNPJ.'
+        };
+      }
+
+      const perfil = parseUser(usuario);
+      const email = String(perfil.email || '').trim();
+
+      if (!email) {
+        return {
+          success: false,
+          message: 'Essa conta não possui um e-mail cadastrado para receber a recuperação.'
+        };
+      }
+
+      const codigo = 'FRC-' + Math.random().toString(36).slice(2, 8).toUpperCase() + '-' + String(Date.now()).slice(-6);
+      localStorage.setItem('freteConectaRecoveryCode', JSON.stringify({
+        email,
+        codigo,
+        userId: perfil.id,
+        createdAt: new Date().toISOString()
+      }));
+
+      const assunto = 'Recuperação de senha - Frete Conecta';
+      const corpo = [
+        'Olá ' + (perfil.nome || 'usuário') + ',',
+        '',
+        'Recebemos sua solicitação de recuperação de senha.',
+        'Seu código de segurança é: ' + codigo,
+        '',
+        'Use este código para redefinir sua senha no site.',
+        'Se você não solicitou essa recuperação, ignore este e-mail.',
+        '',
+        'Atenciosamente,',
+        'Frete Conecta'
+      ].join('\n');
+
+      const gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+      const recoveryPage = 'recuperar-senha.html?email=' + encodeURIComponent(email);
+
+      try {
+        if (email.toLowerCase().endsWith('@gmail.com')) {
+          window.open(gmailUrl, '_blank', 'noopener');
+          setTimeout(() => {
+            window.location.href = recoveryPage;
+          }, 600);
+        } else {
+          const mailtoUrl = 'mailto:' + email + '?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+          window.location.href = mailtoUrl;
+          setTimeout(() => {
+            window.location.href = recoveryPage;
+          }, 700);
+        }
+      } catch (error) {
+        const fallbackUrl = 'mailto:' + email + '?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+        window.location.href = fallbackUrl;
+        setTimeout(() => {
+          window.location.href = recoveryPage;
+        }, 700);
+      }
+
+      return {
+        success: true,
+        email,
+        codigo,
+        recoveryPage,
+        message: 'O Gmail de recuperação foi aberto com o código da conta.'
+      };
+    },
+    verifyRecoveryCode(email, codigo) {
+      const stored = (() => {
+        try {
+          const value = localStorage.getItem('freteConectaRecoveryCode');
+          return value ? JSON.parse(value) : null;
+        } catch (error) {
+          return null;
+        }
+      })();
+
+      if (!stored) {
+        return false;
+      }
+
+      return normalize(stored.email) === normalize(email) &&
+        String(stored.codigo || '').trim().toUpperCase() === String(codigo || '').trim().toUpperCase();
+    },
+    resetPassword(email, codigo, novaSenha) {
+      const usuario = this.findUserByIdentifier(email);
+
+      if (!usuario) {
+        return {
+          success: false,
+          message: 'Conta não encontrada para esse e-mail, CPF ou CNPJ.'
+        };
+      }
+
+      const perfil = parseUser(usuario);
+      const senhaNova = String(novaSenha || '').trim();
+
+      if (!this.verifyRecoveryCode(perfil.email, codigo)) {
+        return {
+          success: false,
+          message: 'Código de recuperação inválido ou expirado.'
+        };
+      }
+
+      if (!senhaNova || senhaNova.length < 6) {
+        return {
+          success: false,
+          message: 'A nova senha deve ter pelo menos 6 caracteres.'
+        };
+      }
+
+      const users = readUsers();
+      const index = users.findIndex((user) => {
+        const item = parseUser(user);
+        return item.id === perfil.id || normalize(item.email) === normalize(perfil.email);
+      });
+
+      if (index === -1) {
+        return {
+          success: false,
+          message: 'Usuário não encontrado para atualizar a senha.'
+        };
+      }
+
+      users[index].senha = senhaNova;
+      writeUsers(users);
+      localStorage.removeItem('freteConectaRecoveryCode');
+
+      return {
+        success: true,
+        message: 'Senha redefinida com sucesso.',
+        role: perfil.role
+      };
+    },
     getDisplayName(user) {
       const profile = parseUser(user || this.currentUser());
       if (!profile) return 'Visitante';
