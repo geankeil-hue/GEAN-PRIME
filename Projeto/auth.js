@@ -119,6 +119,58 @@
       if (!profile) return 'Visitante';
       return profile.nome || profile.email || profile.cnpj || 'Usuário';
     },
+    getRoleHome(role) {
+      switch (role) {
+        case 'embarcador':
+          return 'para-embarcadores.html';
+        case 'destinatario':
+          return 'para-destinatarios.html';
+        case 'caminhoneiro':
+        default:
+          return 'para-caminhoneiros.html';
+      }
+    },
+    redirectToRole(role, fallbackLogin) {
+      const current = this.currentUser();
+      const loginPage = fallbackLogin || 'login.html';
+
+      if (current) {
+        if (current.role === role) {
+          window.location.href = this.getRoleHome(role);
+          return true;
+        }
+        window.location.href = this.getRoleHome(current.role);
+        return true;
+      }
+
+      window.location.href = loginPage;
+      return false;
+    },
+    bindRoleNavigation(selector, role, fallbackLogin, areaPage) {
+      const links = document.querySelectorAll(selector);
+
+      links.forEach((link) => {
+        link.addEventListener('click', (event) => {
+          const current = this.currentUser();
+          const destino = current && current.role === role ? (areaPage || this.getRoleHome(role)) : (fallbackLogin || 'login.html');
+
+          if (current && current.role !== role) {
+            event.preventDefault();
+            window.location.href = this.getRoleHome(current.role);
+            return;
+          }
+
+          if (current && current.role === role) {
+            event.preventDefault();
+            window.location.href = areaPage || this.getRoleHome(role);
+            return;
+          }
+
+          event.preventDefault();
+          window.location.href = destino;
+        });
+      });
+    },
     requireAuth(role, redirectTo) {
       const current = this.currentUser();
 
