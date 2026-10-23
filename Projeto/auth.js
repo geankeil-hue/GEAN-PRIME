@@ -75,6 +75,99 @@
   window.FreteConectaAuth = {
     getUsers: readUsers,
     getCargas: readCargas,
+    seedDemoCargas() {
+      const cargasAtuais = readCargas();
+      if (cargasAtuais.length > 0) {
+        return cargasAtuais;
+      }
+
+      const hoje = new Date();
+      const demoCargas = [
+        {
+          id: 'demo-carga-1',
+          userId: 'demo-embarcador-1',
+          userEmail: 'embarcador@demo.com',
+          origem: 'São Paulo / SP',
+          destino: 'Campinas / SP',
+          tipo: 'Grãos',
+          peso: '12 t',
+          data: new Date(hoje.getTime() + 86400000).toISOString().slice(0, 10),
+          valor: 'R$ 3.400,00',
+          observacoes: 'Carga urgente para entrega em até 24h.',
+          status: 'disponivel',
+          caminhoneiroId: '',
+          caminhoneiroNome: '',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'demo-carga-2',
+          userId: 'demo-embarcador-2',
+          userEmail: 'embarcador2@demo.com',
+          origem: 'Curitiba / PR',
+          destino: 'São José dos Pinhais / PR',
+          tipo: 'Carga geral',
+          peso: '8 t',
+          data: new Date(hoje.getTime() + 172800000).toISOString().slice(0, 10),
+          valor: 'R$ 2.950,00',
+          observacoes: 'Produto em pallets com acesso restrito.',
+          status: 'disponivel',
+          caminhoneiroId: '',
+          caminhoneiroNome: '',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'demo-carga-3',
+          userId: 'demo-embarcador-3',
+          userEmail: 'embarcador3@demo.com',
+          origem: 'Salvador / BA',
+          destino: 'Feira de Santana / BA',
+          tipo: 'Bebidas',
+          peso: '5 t',
+          data: new Date(hoje.getTime() + 259200000).toISOString().slice(0, 10),
+          valor: 'R$ 2.100,00',
+          observacoes: 'Carga refrigerada, atendimento preferencial ao setor de bebidas.',
+          status: 'disponivel',
+          caminhoneiroId: '',
+          caminhoneiroNome: '',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'demo-carga-4',
+          userId: 'demo-embarcador-4',
+          userEmail: 'embarcador4@demo.com',
+          origem: 'Rio de Janeiro / RJ',
+          destino: 'Volta Redonda / RJ',
+          tipo: 'Construção',
+          peso: '15 t',
+          data: new Date(hoje.getTime() + 345600000).toISOString().slice(0, 10),
+          valor: 'R$ 4.500,00',
+          observacoes: 'Material pesado para obra em andamento.',
+          status: 'disponivel',
+          caminhoneiroId: '',
+          caminhoneiroNome: '',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'demo-carga-5',
+          userId: 'demo-embarcador-5',
+          userEmail: 'embarcador5@demo.com',
+          origem: 'Belo Horizonte / MG',
+          destino: 'Uberlândia / MG',
+          tipo: 'Industrial',
+          peso: '18 t',
+          data: new Date(hoje.getTime() + 432000000).toISOString().slice(0, 10),
+          valor: 'R$ 5.600,00',
+          observacoes: 'Carga industrial com entrega em etapa específica.',
+          status: 'disponivel',
+          caminhoneiroId: '',
+          caminhoneiroNome: '',
+          createdAt: new Date().toISOString()
+        }
+      ];
+
+      writeCargas(demoCargas);
+      return demoCargas;
+    },
     hideLoginOptions() {
       const current = this.currentUser();
       if (!current) {
@@ -584,9 +677,11 @@
   };
 
   if (document.readyState !== 'loading') {
+    window.FreteConectaAuth.seedDemoCargas();
     window.FreteConectaAuth.hideLoginOptions();
   } else {
     document.addEventListener('DOMContentLoaded', () => {
+      window.FreteConectaAuth.seedDemoCargas();
       window.FreteConectaAuth.hideLoginOptions();
     });
   }
