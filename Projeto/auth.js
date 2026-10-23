@@ -477,8 +477,16 @@
     },
     getCargasDisponiveis() {
       return readCargas()
-        .filter((carga) => !carga.status || carga.status === 'disponivel')
+        .filter((carga) => !carga.status || (carga.status !== 'aceita' && carga.status !== 'em_corrida'))
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    },
+    getCargasDoCaminhoneiro(usuarioId) {
+      const usuario = usuarioId || this.currentUser()?.id;
+      if (!usuario) {
+        return [];
+      }
+
+      return readCargas().filter((carga) => String(carga.caminhoneiroId) === String(usuario));
     },
     acceptCarga(cargaId) {
       const usuario = this.currentUser();
@@ -501,12 +509,61 @@
         throw new Error('Esta carga já foi aceita por outro caminhoneiro.');
       }
 
+      if (carga.status === 'aceita' && carga.caminhoneiroId === usuario.id) {
+        return carga;
+      }
+
+      if (carga.status === 'em_corrida' && carga.caminhoneiroId === usuario.id) {
+        return carga;
+      }
+
       const atualizada = {
         ...carga,
         status: 'aceita',
         caminhoneiroId: usuario.id,
         caminhoneiroNome: usuario.nome || usuario.email,
-        transportador: usuario.nome || usuario.email
+        transportador: usuario.nome || usuario.email,
+        aceitaEm: new Date().toISOString()
+      };
+
+      cargas[index] = atualizada;
+      writeCargas(cargas);
+      return atualizada;
+    },
+    confirmCarga(cargaId) {
+      const usuario = this.currentUser();
+      if (!usuario) {
+        throw new Error('Faça login para confirmar uma carga.');
+      }
+      if (usuario.role !== 'caminhoneiro') {
+        throw new Error('Apenas caminhoneiros podem confirmar cargas.');
+      }
+
+      const cargas = readCargas();
+      const index = cargas.findIndex((carga) => String(carga.id) === String(cargaId));
+
+      if (index === -1) {
+        throw new Error('Carga não encontrada.');
+      }
+
+      const carga = cargas[index];
+      if (!carga.caminhoneiroId || carga.caminhoneiroId !== usuario.id) {
+        throw new Error('Você precisa aceitar essa carga antes de confirmar a corrida.');
+      }
+
+      if (carga.status === 'em_corrida') {
+        return carga;
+      }
+
+      if (carga.status !== 'aceita') {
+        throw new Error('Esta carga precisa estar aceita para iniciar a corrida.');
+      }
+
+      const atualizada = {
+        ...carga,
+        status: 'em_corrida',
+        corridaIniciadaEm: new Date().toISOString(),
+        corridaConfirmadaPor: usuario.id
       };
 
       cargas[index] = atualizada;

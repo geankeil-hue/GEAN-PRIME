@@ -1129,17 +1129,66 @@
                 return;
             }
 
+            const usuario = FreteConectaAuth.currentUser();
             const cargas = FreteConectaAuth.getCargasDisponiveis();
+            const minhasCargas = FreteConectaAuth.getCargasDoCaminhoneiro(usuario ? usuario.id : null);
+            const totalMinhasCargas = minhasCargas.length;
             const cards = document.querySelectorAll('.dashboard .offer');
             cards.forEach((card) => card.remove());
 
+            if (totalMinhasCargas) {
+                const titulo = document.createElement('div');
+                titulo.className = 'empty-offers';
+                titulo.style.marginBottom = '12px';
+                titulo.textContent = 'Minhas cargas selecionadas';
+                dashboard.appendChild(titulo);
+
+                minhasCargas.forEach((carga) => {
+                    const card = document.createElement('div');
+                    card.className = 'offer';
+                    const statusLabel = carga.status === 'em_corrida' ? 'Corrida iniciada' : 'Carga aceita';
+                    const botaoLabel = carga.status === 'em_corrida' ? 'Corrida confirmada' : 'Confirmar corrida';
+                    const disabled = carga.status === 'em_corrida' ? 'disabled' : '';
+
+                    card.innerHTML = `
+                        <div class="offer-left">
+                            <div class="route">
+                                📍 ${carga.origem}
+                                <span>→</span>
+                                📍 ${carga.destino}
+                            </div>
+                            <div class="details">
+                                📦 ${carga.tipo} &nbsp;·&nbsp;
+                                ${carga.peso} &nbsp;·&nbsp;
+                                ${new Date(carga.data).toLocaleDateString('pt-BR')}
+                            </div>
+                        </div>
+                        <div class="offer-right">
+                            <div class="price">${formatCurrency(Number(String(carga.valor).replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0)}</div>
+                            <div class="verified">✓ ${statusLabel}</div>
+                            <button type="button" class="confirmar-carga-btn" data-carga-id="${carga.id}" ${disabled}>${botaoLabel}</button>
+                        </div>
+                    `;
+                    dashboard.appendChild(card);
+                });
+            }
+
             if (!cargas.length) {
-                const fallback = document.createElement('div');
-                fallback.className = 'empty-offers';
-                fallback.textContent = 'Ainda não há cargas disponíveis para você aceitar no momento.';
-                dashboard.appendChild(fallback);
+                if (!totalMinhasCargas) {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'empty-offers';
+                    fallback.textContent = 'Ainda não há cargas disponíveis para você aceitar no momento.';
+                    dashboard.appendChild(fallback);
+                }
                 return;
             }
+
+            const tituloDisponiveis = document.createElement('div');
+            tituloDisponiveis.className = 'empty-offers';
+            tituloDisponiveis.style.marginTop = '18px';
+            tituloDisponiveis.style.marginBottom = '12px';
+            tituloDisponiveis.textContent = 'Cargas disponíveis';
+            dashboard.appendChild(tituloDisponiveis);
 
             cargas.forEach((carga) => {
                 const card = document.createElement('div');
@@ -1171,7 +1220,20 @@
                     const id = button.dataset.cargaId;
                     try {
                         const cargaAceita = FreteConectaAuth.acceptCarga(id);
-                        alert(`✅ Carga aceita com sucesso! Você vai levar ${cargaAceita.origem} → ${cargaAceita.destino}.`);
+                        alert(`✅ Carga aceita com sucesso! Você vai levar ${cargaAceita.origem} → ${cargaAceita.destino}. Agora confirme a corrida.`);
+                        renderCargasDisponiveis();
+                    } catch (erro) {
+                        alert('⚠️ ' + erro.message);
+                    }
+                });
+            });
+
+            dashboard.querySelectorAll('.confirmar-carga-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const id = button.dataset.cargaId;
+                    try {
+                        const cargaConfirmada = FreteConectaAuth.confirmCarga(id);
+                        alert(`🏁 Corrida iniciada com sucesso! ${cargaConfirmada.origem} → ${cargaConfirmada.destino}.`);
                         renderCargasDisponiveis();
                     } catch (erro) {
                         alert('⚠️ ' + erro.message);
