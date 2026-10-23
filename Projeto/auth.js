@@ -76,97 +76,49 @@
     getUsers: readUsers,
     getCargas: readCargas,
     seedDemoCargas() {
-      const cargasAtuais = readCargas();
-      if (cargasAtuais.length > 0) {
-        return cargasAtuais;
-      }
-
+      const existentes = readCargas();
+      const existentesIds = new Set((existentes || []).map((carga) => String(carga.id)));
       const hoje = new Date();
-      const demoCargas = [
-        {
-          id: 'demo-carga-1',
-          userId: 'demo-embarcador-1',
-          userEmail: 'embarcador@demo.com',
-          origem: 'São Paulo / SP',
-          destino: 'Campinas / SP',
-          tipo: 'Grãos',
-          peso: '12 t',
-          data: new Date(hoje.getTime() + 86400000).toISOString().slice(0, 10),
-          valor: 'R$ 3.400,00',
-          observacoes: 'Carga urgente para entrega em até 24h.',
-          status: 'disponivel',
-          caminhoneiroId: '',
-          caminhoneiroNome: '',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'demo-carga-2',
-          userId: 'demo-embarcador-2',
-          userEmail: 'embarcador2@demo.com',
-          origem: 'Curitiba / PR',
-          destino: 'São José dos Pinhais / PR',
-          tipo: 'Carga geral',
-          peso: '8 t',
-          data: new Date(hoje.getTime() + 172800000).toISOString().slice(0, 10),
-          valor: 'R$ 2.950,00',
-          observacoes: 'Produto em pallets com acesso restrito.',
-          status: 'disponivel',
-          caminhoneiroId: '',
-          caminhoneiroNome: '',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'demo-carga-3',
-          userId: 'demo-embarcador-3',
-          userEmail: 'embarcador3@demo.com',
-          origem: 'Salvador / BA',
-          destino: 'Feira de Santana / BA',
-          tipo: 'Bebidas',
-          peso: '5 t',
-          data: new Date(hoje.getTime() + 259200000).toISOString().slice(0, 10),
-          valor: 'R$ 2.100,00',
-          observacoes: 'Carga refrigerada, atendimento preferencial ao setor de bebidas.',
-          status: 'disponivel',
-          caminhoneiroId: '',
-          caminhoneiroNome: '',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'demo-carga-4',
-          userId: 'demo-embarcador-4',
-          userEmail: 'embarcador4@demo.com',
-          origem: 'Rio de Janeiro / RJ',
-          destino: 'Volta Redonda / RJ',
-          tipo: 'Construção',
-          peso: '15 t',
-          data: new Date(hoje.getTime() + 345600000).toISOString().slice(0, 10),
-          valor: 'R$ 4.500,00',
-          observacoes: 'Material pesado para obra em andamento.',
-          status: 'disponivel',
-          caminhoneiroId: '',
-          caminhoneiroNome: '',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'demo-carga-5',
-          userId: 'demo-embarcador-5',
-          userEmail: 'embarcador5@demo.com',
-          origem: 'Belo Horizonte / MG',
-          destino: 'Uberlândia / MG',
-          tipo: 'Industrial',
-          peso: '18 t',
-          data: new Date(hoje.getTime() + 432000000).toISOString().slice(0, 10),
-          valor: 'R$ 5.600,00',
-          observacoes: 'Carga industrial com entrega em etapa específica.',
-          status: 'disponivel',
-          caminhoneiroId: '',
-          caminhoneiroNome: '',
-          createdAt: new Date().toISOString()
-        }
+      const catalogo = [
+        { id: 'demo-carga-1', origem: 'São Paulo / SP', destino: 'Campinas / SP', tipo: 'Grãos', peso: '12 t', data: hoje, valor: 'R$ 3.400,00', observacoes: 'Carga urgente para entrega em até 24h.' },
+        { id: 'demo-carga-2', origem: 'Curitiba / PR', destino: 'São José dos Pinhais / PR', tipo: 'Carga geral', peso: '8 t', data: hoje, valor: 'R$ 2.950,00', observacoes: 'Produto em pallets com acesso restrito.' },
+        { id: 'demo-carga-3', origem: 'Salvador / BA', destino: 'Feira de Santana / BA', tipo: 'Bebidas', peso: '5 t', data: hoje, valor: 'R$ 2.100,00', observacoes: 'Carga refrigerada com entrega prioritária.' },
+        { id: 'demo-carga-4', origem: 'Rio de Janeiro / RJ', destino: 'Volta Redonda / RJ', tipo: 'Construção', peso: '15 t', data: hoje, valor: 'R$ 4.500,00', observacoes: 'Material pesado para obra em andamento.' },
+        { id: 'demo-carga-5', origem: 'Belo Horizonte / MG', destino: 'Uberlândia / MG', tipo: 'Industrial', peso: '18 t', data: hoje, valor: 'R$ 5.600,00', observacoes: 'Carga industrial com entrega em etapa específica.' },
+        { id: 'demo-carga-6', origem: 'Florianópolis / SC', destino: 'Joinville / SC', tipo: 'Eletrônicos', peso: '6 t', data: hoje, valor: 'R$ 2.800,00', observacoes: 'Carga sensível com entrega no mesmo estado.' },
+        { id: 'demo-carga-7', origem: 'Porto Alegre / RS', destino: 'Caxias do Sul / RS', tipo: 'Móveis', peso: '9 t', data: hoje, valor: 'R$ 3.150,00', observacoes: 'Entrega em galpão logístico com horário compacto.' },
+        { id: 'demo-carga-8', origem: 'Goiânia / GO', destino: 'Anápolis / GO', tipo: 'Agro', peso: '11 t', data: hoje, valor: 'R$ 3.700,00', observacoes: 'Carga agrícola e perecível para coleta rápida.' },
+        { id: 'demo-carga-9', origem: 'Brasília / DF', destino: 'Goiânia / GO', tipo: 'Açougue', peso: '4 t', data: hoje, valor: 'R$ 2.300,00', observacoes: 'Entrega com controle de temperatura e janela curta.' },
+        { id: 'demo-carga-10', origem: 'Recife / PE', destino: 'Caruaru / PE', tipo: 'Vestuário', peso: '7 t', data: hoje, valor: 'R$ 2.650,00', observacoes: 'Carga de varejo com prazo de entrega apertado.' },
+        { id: 'demo-carga-11', origem: 'Fortaleza / CE', destino: 'Juazeiro do Norte / CE', tipo: 'Mercadorias', peso: '10 t', data: hoje, valor: 'R$ 3.500,00', observacoes: 'Frete de médio porte com coleta em 8h.' },
+        { id: 'demo-carga-12', origem: 'Belém / PA', destino: 'Santarém / PA', tipo: 'Alimentos', peso: '13 t', data: hoje, valor: 'R$ 4.150,00', observacoes: 'Carga alimentícia com logística sensível.' }
       ];
 
-      writeCargas(demoCargas);
-      return demoCargas;
+      const demoCargas = catalogo
+        .filter((carga) => !existentesIds.has(carga.id))
+        .map((carga) => ({
+          id: carga.id,
+          userId: `demo-embarcador-${carga.id.split('-').pop()}`,
+          userEmail: `embarcador${carga.id.split('-').pop()}@demo.com`,
+          origem: carga.origem,
+          destino: carga.destino,
+          tipo: carga.tipo,
+          peso: carga.peso,
+          data: new Date(hoje.getTime() + (Math.random() * 6 + 1) * 86400000).toISOString().slice(0, 10),
+          valor: carga.valor,
+          observacoes: carga.observacoes,
+          status: 'disponivel',
+          caminhoneiroId: '',
+          caminhoneiroNome: '',
+          createdAt: new Date().toISOString()
+        }));
+
+      const finalLista = [...existentes, ...demoCargas];
+      if (!existentes.length || demoCargas.length) {
+        writeCargas(finalLista);
+      }
+
+      return finalLista;
     },
     hideLoginOptions() {
       const current = this.currentUser();

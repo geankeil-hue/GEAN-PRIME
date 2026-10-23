@@ -527,6 +527,92 @@
             font-weight: bold;
         }
 
+        .gps-panel {
+            background: linear-gradient(135deg, #eaf6ff 0%, #edf7ee 100%);
+            border: 1px solid #cfe2ff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin: 0 0 16px;
+            box-shadow: 0 12px 28px rgba(18, 89, 166, 0.08);
+        }
+
+        .gps-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-weight: 700;
+            color: #153d64;
+        }
+
+        .gps-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(18, 89, 166, 0.1);
+            border-radius: 999px;
+            padding: 7px 10px;
+            color: #0f5ca9;
+            font-size: 12px;
+        }
+
+        .gps-route {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: #123c59;
+            font-size: 14px;
+        }
+
+        .gps-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .gps-metric {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(18, 89, 166, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .gps-label {
+            display: block;
+            color: #67809a;
+            font-size: 11px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .gps-value {
+            color: #123c59;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .gps-bar {
+            width: 100%;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(17, 91, 166, 0.12);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .gps-bar span {
+            display: block;
+            height: 100%;
+            width: 48%;
+            background: linear-gradient(90deg, #0f9d74 0%, #ff9f1c 100%);
+            border-radius: inherit;
+        }
+
         .selecionar-carga-btn,
         .confirmar-carga-btn {
             appearance: none;
@@ -1246,31 +1332,207 @@
                 .replace(/\u00A0/g, ' ');
         }
 
+        function parseLocalizacao(texto) {
+            if (!texto) {
+                return { cidade: 'São Paulo', estado: 'SP' };
+            }
+
+            const padrao = String(texto).match(/([A-Za-zÀ-ÿ\s]+?)\s*\/\s*([A-Z]{2})/i) || String(texto).match(/([A-Za-zÀ-ÿ\s]+?)\s*\(([A-Z]{2})\)/i);
+
+            if (padrao) {
+                return {
+                    cidade: padrao[1].trim(),
+                    estado: (padrao[2] || 'SP').trim().toUpperCase()
+                };
+            }
+
+            const partes = String(texto).split(/[,\-]/);
+            return {
+                cidade: (partes[0] || 'São Paulo').trim(),
+                estado: (partes[1] || 'SP').trim().toUpperCase()
+            };
+        }
+
+        const coordenadasPorCidade = {
+            'São Paulo': { lat: -23.5505, lng: -46.6333 },
+            'Campinas': { lat: -22.9068, lng: -47.0615 },
+            'Rio de Janeiro': { lat: -22.9068, lng: -43.1729 },
+            'Belo Horizonte': { lat: -19.9167, lng: -43.9345 },
+            'Curitiba': { lat: -25.4294, lng: -49.2719 },
+            'Salvador': { lat: -12.9777, lng: -38.5016 },
+            'Brasília': { lat: -15.7939, lng: -47.8828 },
+            'Porto Alegre': { lat: -30.0346, lng: -51.2177 },
+            'Recife': { lat: -8.0476, lng: -34.8770 },
+            'Fortaleza': { lat: -3.7319, lng: -38.5267 },
+            'Uberlândia': { lat: -18.9146, lng: -48.2753 },
+            'Feira de Santana': { lat: -12.2572, lng: -38.9598 },
+            'Volta Redonda': { lat: -22.5236, lng: -44.1045 },
+            'Niterói': { lat: -22.8833, lng: -43.1036 },
+            'Santos': { lat: -23.9608, lng: -46.3333 },
+            'Ribeirão Preto': { lat: -21.1775, lng: -47.8103 },
+            'São José dos Campos': { lat: -23.1794, lng: -45.8869 }
+        };
+
+        function calcularDistanciaKm(deOrigem, paraDestino) {
+            const origem = parseLocalizacao(deOrigem);
+            const destino = parseLocalizacao(paraDestino);
+            const pontoOrigem = coordenadasPorCidade[origem.cidade] || { lat: -23.5505, lng: -46.6333 };
+            const pontoDestino = coordenadasPorCidade[destino.cidade] || { lat: -23.5505, lng: -46.6333 };
+            const distancia = Math.hypot(pontoDestino.lat - pontoOrigem.lat, pontoDestino.lng - pontoOrigem.lng) * 111.32;
+            return Math.max(18, Math.round(distancia));
+        }
+
+        function formatarTempoEstimado(km) {
+            const horas = Math.max(1, Math.round(km / 55));
+            const minutos = Math.max(10, (km % 55) * 0.8);
+            return `${horas}h ${Math.round(minutos)}m`;
+        }
+
+        function renderGpsCorridaAtiva() {
+            const dashboard = document.querySelector('.dashboard');
+            if (!dashboard) return;
+
+            const usuario = FreteConectaAuth.currentUser();
+            const cargasAtivas = FreteConectaAuth.getCargasDoCaminhoneiro(usuario ? usuario.id : null)
+                .filter((carga) => String(carga.status || '').toLowerCase() === 'em_corrida');
+
+            const painelAntigo = dashboard.querySelector('.gps-panel');
+            if (painelAntigo) {
+                painelAntigo.remove();
+            }
+
+            if (!cargasAtivas.length) {
+                return;
+            }
+
+            const cargaAtiva = cargasAtivas[0];
+            const localAtual = `${usuario && usuario.cidade ? usuario.cidade : 'São Paulo'} / ${usuario && usuario.estado ? usuario.estado : 'SP'}`;
+            const distanciaKm = calcularDistanciaKm(localAtual, cargaAtiva.origem || 'São Paulo / SP');
+            const tempoEstimado = formatarTempoEstimado(distanciaKm);
+            const progresso = Math.min(100, Math.max(28, Math.round((distanciaKm / 450) * 100)));
+
+            const painel = document.createElement('div');
+            painel.className = 'gps-panel';
+            painel.innerHTML = `
+                <div class="gps-header">
+                    <span>📍 Rota ativa</span>
+                    <span class="gps-badge">GPS em tempo real</span>
+                </div>
+                <div class="gps-route">
+                    <span>${localAtual}</span>
+                    <span>→</span>
+                    <span>${cargaAtiva.origem}</span>
+                </div>
+                <div class="gps-metrics">
+                    <div class="gps-metric">
+                        <span class="gps-label">Distância</span>
+                        <span class="gps-value">${distanciaKm} km</span>
+                    </div>
+                    <div class="gps-metric">
+                        <span class="gps-label">Tempo</span>
+                        <span class="gps-value">${tempoEstimado}</span>
+                    </div>
+                    <div class="gps-metric">
+                        <span class="gps-label">Status</span>
+                        <span class="gps-value">Em rota</span>
+                    </div>
+                </div>
+                <div class="gps-bar"><span style="width: ${progresso}%"></span></div>
+            `;
+
+            dashboard.prepend(painel);
+        }
+
+        function normalizarTexto(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function extrairCidadeEstado(texto) {
+            const valor = String(texto || '').trim();
+            if (!valor) {
+                return { cidade: '', estado: '' };
+            }
+
+            const padraoEstado = valor.match(/(.+?)\s*\/\s*([A-Z]{2})/i) || valor.match(/(.+?)\s*\(([A-Z]{2})\)/i);
+            if (padraoEstado) {
+                return {
+                    cidade: padraoEstado[1].trim(),
+                    estado: (padraoEstado[2] || '').trim().toUpperCase()
+                };
+            }
+
+            const partes = valor.split(/[,-]/).map((item) => item.trim()).filter(Boolean);
+            return {
+                cidade: partes[0] || '',
+                estado: partes[1] ? partes[1].toUpperCase() : ''
+            };
+        }
+
         function getCargasFiltradas() {
             const estadoSelecionado = filtroEstado ? filtroEstado.value : '';
             const cidadeSelecionada = filtroCidade ? filtroCidade.value : '';
-            const cargas = FreteConectaAuth.getCargasDisponiveis();
+            const cargas = FreteConectaAuth.getCargasDisponiveis().map((carga) => {
+                const origem = extrairCidadeEstado(carga.origem);
+                const destino = extrairCidadeEstado(carga.destino);
+                const origemCidade = normalizarTexto(origem.cidade);
+                const origemEstado = normalizarTexto(origem.estado);
+                const destinoCidade = normalizarTexto(destino.cidade);
+                const destinoEstado = normalizarTexto(destino.estado);
+                const cidadeBusca = normalizarTexto(cidadeSelecionada);
+                const estadoBusca = normalizarTexto(estadoSelecionado);
+
+                let score = 0;
+                if (cidadeBusca && (origemCidade === cidadeBusca || destinoCidade === cidadeBusca)) {
+                    score += 100;
+                }
+                if (estadoBusca && (origemEstado === estadoBusca || destinoEstado === estadoBusca)) {
+                    score += 50;
+                }
+                if (cidadeBusca && (origemCidade.includes(cidadeBusca) || destinoCidade.includes(cidadeBusca))) {
+                    score += 20;
+                }
+                if (estadoBusca && (origemEstado.includes(estadoBusca) || destinoEstado.includes(estadoBusca))) {
+                    score += 10;
+                }
+
+                return { ...carga, _score: score };
+            });
 
             if (!estadoSelecionado && !cidadeSelecionada) {
-                return cargas;
+                return cargas.sort((a, b) => (b._score || 0) - (a._score || 0));
             }
 
             return cargas.filter((carga) => {
-                const origem = String(carga.origem || '').toLowerCase();
-                const destino = String(carga.destino || '').toLowerCase();
-                const cidade = cidadeSelecionada ? cidadeSelecionada.toLowerCase() : '';
-                const estado = estadoSelecionado ? estadoSelecionado.toLowerCase() : '';
+                const origem = extrairCidadeEstado(carga.origem);
+                const destino = extrairCidadeEstado(carga.destino);
+                const origemCidade = normalizarTexto(origem.cidade);
+                const origemEstado = normalizarTexto(origem.estado);
+                const destinoCidade = normalizarTexto(destino.cidade);
+                const destinoEstado = normalizarTexto(destino.estado);
+                const cidadeBusca = normalizarTexto(cidadeSelecionada);
+                const estadoBusca = normalizarTexto(estadoSelecionado);
 
-                const origemPossuiCidade = cidade ? origem.includes(cidade) : true;
-                const destinoPossuiCidade = cidade ? destino.includes(cidade) : true;
-                const origemPossuiEstado = estado ? origem.includes(estado) : true;
-                const destinoPossuiEstado = estado ? destino.includes(estado) : true;
+                const mesmoEstado = !estadoBusca || origemEstado === estadoBusca || destinoEstado === estadoBusca;
+                const mesmaCidade = !cidadeBusca || origemCidade === cidadeBusca || destinoCidade === cidadeBusca;
 
-                const bateCidade = !cidade || origemPossuiCidade || destinoPossuiCidade;
-                const bateEstado = !estado || origemPossuiEstado || destinoPossuiEstado;
+                if (cidadeBusca && estadoBusca) {
+                    return (mesmaCidade && mesmoEstado) || (origemEstado === estadoBusca && destinoEstado === estadoBusca);
+                }
 
-                return bateCidade && bateEstado;
-            });
+                if (cidadeBusca) {
+                    return mesmaCidade;
+                }
+
+                if (estadoBusca) {
+                    return mesmoEstado;
+                }
+
+                return true;
+            }).sort((a, b) => (b._score || 0) - (a._score || 0));
         }
 
         popularEstados();
@@ -1312,6 +1574,8 @@
             const totalMinhasCargas = minhasCargas.length;
             const cards = document.querySelectorAll('.dashboard .offer');
             cards.forEach((card) => card.remove());
+
+            renderGpsCorridaAtiva();
 
             const resumoArea = document.getElementById('resumo-area');
             if (resumoArea) {
@@ -1423,7 +1687,9 @@
                     const id = button.dataset.cargaId;
                     try {
                         const cargaConfirmada = FreteConectaAuth.confirmCarga(id);
-                        alert(`🏁 Corrida iniciada com sucesso! ${cargaConfirmada.origem} → ${cargaConfirmada.destino}.`);
+                        const distanciaKm = calcularDistanciaKm(`${FreteConectaAuth.currentUser()?.cidade || 'São Paulo'} / ${FreteConectaAuth.currentUser()?.estado || 'SP'}`, cargaConfirmada.origem || 'São Paulo / SP');
+                        const tempoEstimado = formatarTempoEstimado(distanciaKm);
+                        alert(`🏁 Corrida iniciada com sucesso! ${cargaConfirmada.origem} → ${cargaConfirmada.destino}.\n📍 Distância até a carga: ${distanciaKm} km\n⏱️ Tempo estimado: ${tempoEstimado}`);
                         renderCargasDisponiveis();
                     } catch (erro) {
                         alert('⚠️ ' + erro.message);
