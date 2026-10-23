@@ -926,6 +926,32 @@
                         >
                     </div>
 
+                    <div class="campo">
+                        <label for="cidadeCadastro">
+                            Cidade onde mora
+                        </label>
+
+                        <input
+                            type="text"
+                            id="cidadeCadastro"
+                            name="cidade"
+                            placeholder="Ex: São Paulo"
+                        >
+                    </div>
+
+                    <div class="campo">
+                        <label for="estadoCadastro">
+                            Estado
+                        </label>
+
+                        <input
+                            type="text"
+                            id="estadoCadastro"
+                            name="estado"
+                            placeholder="Ex: SP"
+                        >
+                    </div>
+
 
 
                     <!-- CNH -->
@@ -1524,6 +1550,8 @@
                 const cpfValue = document.getElementById("cpf").value.trim();
                 const email = document.getElementById("emailCadastro").value.trim();
                 const senha = document.getElementById("senhaCadastro").value.trim();
+                const cidade = document.getElementById("cidadeCadastro").value.trim();
+                const estado = document.getElementById("estadoCadastro").value.trim();
 
                 if (!nome || !cpfValue || !email || !senha) {
                     mensagem.style.display = "block";
@@ -1547,6 +1575,9 @@
                         cpf: cpfValue,
                         email,
                         senha,
+                        cidade,
+                        estado,
+                        homeRegion: [cidade, estado].filter(Boolean).join(' / ') || 'São Paulo',
                         role: 'caminhoneiro'
                     });
 

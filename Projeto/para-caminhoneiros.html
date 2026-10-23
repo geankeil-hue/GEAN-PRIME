@@ -1105,6 +1105,23 @@
 
     </section>
 
+    <div class="filtro-area" style="margin: 28px 0 18px; background: #fff; border-radius: 14px; padding: 18px 20px; color: #123; box-shadow: 0 12px 30px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+            <strong style="font-size: 1.1rem;">Buscar cargas por região</strong>
+            <span id="resumo-area" style="color: #456; font-size: 0.9rem;">Área atual: São Paulo</span>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <input
+                id="filtro-regiao"
+                type="text"
+                value=""
+                placeholder="Ex: São Paulo, Curitiba, Salvador, Rio de Janeiro"
+                style="flex: 1 1 320px; min-width: 220px; padding: 12px 14px; border: 1px solid #d7e1ee; border-radius: 10px; font-size: 1rem;"
+            />
+            <button type="button" id="btn-area-padrao" style="padding: 12px 16px; border-radius: 10px; border: none; background: #ff7a00; color: #fff; font-weight: 700; cursor: pointer;">Usar minha área</button>
+        </div>
+    </div>
+
     <script src="auth.js"></script>
     <script>
         FreteConectaAuth.requireAuth('caminhoneiro', 'login.html');
@@ -1113,6 +1130,20 @@
             loginLink: 'login.html',
             redirectAfterLogout: 'index.html'
         });
+
+        const filtroRegiao = document.getElementById('filtro-regiao');
+        if (filtroRegiao) {
+            filtroRegiao.value = getAreaInicial();
+            filtroRegiao.addEventListener('input', renderCargasDisponiveis);
+        }
+
+        const btnAreaPadrao = document.getElementById('btn-area-padrao');
+        if (btnAreaPadrao && filtroRegiao) {
+            btnAreaPadrao.addEventListener('click', () => {
+                filtroRegiao.value = getAreaInicial();
+                renderCargasDisponiveis();
+            });
+        }
 
         function formatCurrency(value) {
             return Number(value || 0)
@@ -1123,6 +1154,29 @@
                 .replace(/\u00A0/g, ' ');
         }
 
+        function getAreaInicial() {
+            const usuario = FreteConectaAuth.currentUser();
+            const homeRegion = FreteConectaAuth.getHomeRegion(usuario);
+            return homeRegion || 'São Paulo';
+        }
+
+        function getCargasFiltradas() {
+            const filtro = document.getElementById('filtro-regiao')?.value?.trim() || getAreaInicial();
+            const cargas = FreteConectaAuth.getCargasDisponiveis();
+
+            if (!filtro) {
+                return cargas;
+            }
+
+            const termo = filtro.toLowerCase();
+            return cargas.filter((carga) => {
+                const origem = String(carga.origem || '').toLowerCase();
+                const destino = String(carga.destino || '').toLowerCase();
+                const texto = `${origem} ${destino}`;
+                return texto.includes(termo) || origem.includes(termo) || destino.includes(termo);
+            });
+        }
+
         function renderCargasDisponiveis() {
             const dashboard = document.querySelector('.dashboard');
             if (!dashboard) {
@@ -1130,11 +1184,17 @@
             }
 
             const usuario = FreteConectaAuth.currentUser();
-            const cargas = FreteConectaAuth.getCargasDisponiveis();
+            const cargas = getCargasFiltradas();
             const minhasCargas = FreteConectaAuth.getCargasDoCaminhoneiro(usuario ? usuario.id : null);
             const totalMinhasCargas = minhasCargas.length;
             const cards = document.querySelectorAll('.dashboard .offer');
             cards.forEach((card) => card.remove());
+
+            const resumoArea = document.getElementById('resumo-area');
+            if (resumoArea) {
+                const areaAtual = document.getElementById('filtro-regiao')?.value?.trim() || getAreaInicial();
+                resumoArea.textContent = 'Área atual: ' + areaAtual;
+            }
 
             if (totalMinhasCargas) {
                 const titulo = document.createElement('div');

@@ -36,6 +36,9 @@
   function parseUser(user) {
     if (!user) return null;
     const role = user.role || 'caminhoneiro';
+    const cidade = user.cidade || user.localidade || '';
+    const estado = user.estado || user.uf || '';
+    const homeRegion = user.homeRegion || user.regiao || [cidade, estado].filter(Boolean).join(' / ') || 'São Paulo';
     return {
       id: user.id || Date.now().toString(),
       nome: user.nome || '',
@@ -43,6 +46,9 @@
       cnpj: user.cnpj || '',
       email: user.email || '',
       senha: user.senha || '',
+      cidade,
+      estado,
+      homeRegion,
       role: ['caminhoneiro', 'embarcador', 'destinatario'].includes(role) ? role : 'caminhoneiro',
       createdAt: user.createdAt || new Date().toISOString()
     };
@@ -274,6 +280,11 @@
       const profile = parseUser(user || this.currentUser());
       if (!profile) return 'Visitante';
       return profile.nome || profile.email || profile.cnpj || 'Usuário';
+    },
+    getHomeRegion(user) {
+      const profile = parseUser(user || this.currentUser());
+      if (!profile) return 'São Paulo';
+      return profile.homeRegion || profile.cidade || profile.estado || 'São Paulo';
     },
     getRoleHome(role) {
       switch (role) {
