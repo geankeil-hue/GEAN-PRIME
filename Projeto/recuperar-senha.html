@@ -133,7 +133,26 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const emailPreenchido = params.get('email');
+    const redirectParam = params.get('redirect');
     const emailInput = document.getElementById('email');
+    const voltarLink = document.querySelector('.link-voltar');
+    const validRedirects = ['login.html', 'login-embarcadores.html', 'login-destinatario.html'];
+    const savedRedirect = (() => {
+      try {
+        return localStorage.getItem('freteConectaRecoveryOrigin');
+      } catch (error) {
+        return null;
+      }
+    })();
+    const redirectPage = validRedirects.includes(redirectParam)
+      ? redirectParam
+      : validRedirects.includes(savedRedirect)
+        ? savedRedirect
+        : 'login.html';
+
+    if (voltarLink) {
+      voltarLink.href = redirectPage;
+    }
 
     if (emailPreenchido) {
       emailInput.value = decodeURIComponent(emailPreenchido);
@@ -172,7 +191,13 @@
         return;
       }
 
-      const resultado = FreteConectaAuth.resetPassword(email, codigo, novaSenha);
+      const role = redirectPage === 'login-embarcadores.html'
+        ? 'embarcador'
+        : redirectPage === 'login-destinatario.html'
+          ? 'destinatario'
+          : 'caminhoneiro';
+
+      const resultado = FreteConectaAuth.resetPassword(email, codigo, novaSenha, role);
 
       if (!resultado.success) {
         mostrarMensagem('⚠️ ' + resultado.message, false);
@@ -181,15 +206,8 @@
 
       mostrarMensagem('✓ ' + resultado.message + ' Redirecionando para o login...', true);
 
-      const perfil = FreteConectaAuth.findUserByIdentifier(email);
-      const paginaLogin = perfil && perfil.role === 'embarcador'
-        ? 'login-embarcadores.html'
-        : perfil && perfil.role === 'destinatario'
-          ? 'login-destinatario.html'
-          : 'login.html';
-
       setTimeout(() => {
-        window.location.href = paginaLogin;
+        window.location.href = redirectPage;
       }, 1800);
     });
   </script>

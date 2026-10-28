@@ -269,7 +269,7 @@
     function esqueciSenha() {
       const email = document.getElementById('email').value.trim();
       const mensagem = document.getElementById('mensagem');
-      const resultado = FreteConectaAuth.sendPasswordRecoveryEmail(email);
+      const resultado = FreteConectaAuth.sendPasswordRecoveryEmail(email, 'destinatario');
 
       if (!resultado.success) {
         mensagem.style.display = 'block';

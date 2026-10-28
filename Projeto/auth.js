@@ -145,10 +145,16 @@
       ];
 
       document.querySelectorAll(selectors.join(',')).forEach((element) => {
-        if (element) {
-          element.style.display = 'none';
-          element.setAttribute('aria-hidden', 'true');
+        if (!element) {
+          return;
         }
+
+        if (element.hasAttribute('data-role-route') || element.closest('[data-role-route]')) {
+          return;
+        }
+
+        element.style.display = 'none';
+        element.setAttribute('aria-hidden', 'true');
       });
 
       return true;
@@ -165,7 +171,7 @@
         return null;
       }
     },
-    findUserByIdentifier(identificador) {
+    findUserByIdentifier(identificador, role) {
       const users = readUsers();
       const valor = normalize(String(identificador ?? ''));
 
@@ -175,12 +181,39 @@
 
       return users.find((user) => {
         const perfil = parseUser(user);
-        return normalize(perfil.email) === valor ||
+        const matchesIdentifier = normalize(perfil.email) === valor ||
           normalize(perfil.cpf) === valor ||
           normalize(perfil.cnpj) === valor;
+        const matchesRole = !role || perfil.role === role;
+        return matchesIdentifier && matchesRole;
       }) || null;
     },
-    sendPasswordRecoveryEmail(identificador) {
+    getRecoveryOriginPage() {
+      const saved = (() => {
+        try {
+          return localStorage.getItem('freteConectaRecoveryOrigin');
+        } catch (error) {
+          return null;
+        }
+      })();
+
+      const candidates = ['login-embarcadores.html', 'login-destinatario.html', 'login.html'];
+      const currentPage = (() => {
+        try {
+          const path = (window.location.pathname || '').split('/').pop();
+          return path || 'login.html';
+        } catch (error) {
+          return 'login.html';
+        }
+      })();
+
+      const fallback = candidates.includes(currentPage) ? currentPage : 'login.html';
+      const origin = saved && candidates.includes(saved) ? saved : fallback;
+
+      localStorage.setItem('freteConectaRecoveryOrigin', origin);
+      return origin;
+    },
+    sendPasswordRecoveryEmail(identificador, role) {
       const usuario = this.findUserByIdentifier(identificador);
 
       if (!usuario) {
@@ -200,12 +233,15 @@
         };
       }
 
+      const originPage = this.getRecoveryOriginPage();
       const codigo = 'FRC-' + Math.random().toString(36).slice(2, 8).toUpperCase() + '-' + String(Date.now()).slice(-6);
       localStorage.setItem('freteConectaRecoveryCode', JSON.stringify({
         email,
         codigo,
         userId: perfil.id,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        redirect: originPage,
+        role: role || perfil.role
       }));
 
       const assunto = 'Recuperação de senha - Frete Conecta';
@@ -223,7 +259,7 @@
       ].join('\n');
 
       const gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
-      const recoveryPage = 'recuperar-senha.html?email=' + encodeURIComponent(email);
+      const recoveryPage = 'recuperar-senha.html?email=' + encodeURIComponent(email) + '&redirect=' + encodeURIComponent(originPage);
 
       try {
         if (email.toLowerCase().endsWith('@gmail.com')) {
@@ -254,7 +290,7 @@
         message: 'O Gmail de recuperação foi aberto com o código da conta.'
       };
     },
-    verifyRecoveryCode(email, codigo) {
+    verifyRecoveryCode(email, codigo, userId) {
       const stored = (() => {
         try {
           const value = localStorage.getItem('freteConectaRecoveryCode');
@@ -268,11 +304,14 @@
         return false;
       }
 
-      return normalize(stored.email) === normalize(email) &&
-        String(stored.codigo || '').trim().toUpperCase() === String(codigo || '').trim().toUpperCase();
+      const mesmaEmail = normalize(stored.email) === normalize(email);
+      const mesmoUsuario = userId && String(stored.userId || '') === String(userId);
+      const codigoValido = String(stored.codigo || '').trim().toUpperCase() === String(codigo || '').trim().toUpperCase();
+
+      return codigoValido && (mesmaEmail || mesmoUsuario);
     },
-    resetPassword(email, codigo, novaSenha) {
-      const usuario = this.findUserByIdentifier(email);
+    resetPassword(email, codigo, novaSenha, role) {
+      const usuario = this.findUserByIdentifier(email, role);
 
       if (!usuario) {
         return {
@@ -284,7 +323,28 @@
       const perfil = parseUser(usuario);
       const senhaNova = String(novaSenha || '').trim();
 
-      if (!this.verifyRecoveryCode(perfil.email, codigo)) {
+      const stored = (() => {
+        try {
+          const value = localStorage.getItem('freteConectaRecoveryCode');
+          return value ? JSON.parse(value) : null;
+        } catch (error) {
+          return null;
+        }
+      })();
+
+      const matchesStoredAccount = stored && (
+        normalize(stored.email) === normalize(perfil.email) ||
+        String(stored.userId || '') === String(perfil.id || '')
+      );
+
+      if (!stored || !matchesStoredAccount) {
+        return {
+          success: false,
+          message: 'Código de recuperação não foi gerado para esta conta.'
+        };
+      }
+
+      if (!this.verifyRecoveryCode(perfil.email, codigo, perfil.id)) {
         return {
           success: false,
           message: 'Código de recuperação inválido ou expirado.'
@@ -512,6 +572,7 @@
         origem: String(carga?.origem || '').trim(),
         destino: String(carga?.destino || '').trim(),
         tipo: String(carga?.tipo || '').trim(),
+        regiaoPublicacao: String(carga?.regiaoPublicacao || '').trim(),
         peso: String(carga?.peso || '').trim(),
         data: String(carga?.data || '').trim(),
         valor: String(carga?.valor || '').trim(),
@@ -522,7 +583,7 @@
         createdAt: new Date().toISOString()
       };
 
-      if (!payload.origem || !payload.destino || !payload.tipo || !payload.peso || !payload.data || !payload.valor) {
+      if (!payload.origem || !payload.destino || !payload.tipo || !payload.regiaoPublicacao || !payload.peso || !payload.data || !payload.valor) {
         throw new Error('Preencha todos os campos obrigatórios para publicar a carga.');
       }
 
