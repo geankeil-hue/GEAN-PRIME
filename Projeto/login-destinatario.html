@@ -210,13 +210,12 @@
   <script src="auth.js"></script>
   <script>
     const usuarioAtual = FreteConectaAuth.currentUser();
-    if (usuarioAtual) {
-      const rota = usuarioAtual.role === 'embarcador'
-        ? 'para-embarcadores.html'
-        : usuarioAtual.role === 'destinatario'
-          ? 'para-destinatarios.html'
-          : 'para-caminhoneiros.html';
-      window.location.href = rota;
+    if (usuarioAtual && usuarioAtual.role !== 'destinatario') {
+      localStorage.removeItem('freteConectaCurrentUser');
+    }
+
+    if (usuarioAtual && usuarioAtual.role === 'destinatario') {
+      window.location.href = 'para-destinatarios.html';
     }
 
     function mostrarSenha() {

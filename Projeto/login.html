@@ -504,7 +504,7 @@
 
             <nav>
                 <a href="login.html" data-role-route="caminhoneiro" data-area-page="para-caminhoneiros.html" data-login-page="login.html">Para caminhoneiros</a>
-                <a href="para-embarcadores.html">Para embarcadores</a>
+                <a href="embarcadores-publicar.html">Para embarcadores</a>
                 <a href="index.html#como-funciona">Como funciona</a>
                 <a href="index.html#seguranca">Segurança</a>
                 <a href="login.html">Entrar</a>
@@ -734,13 +734,12 @@
     <script>
 
         const usuarioAtual = FreteConectaAuth.currentUser();
-        if (usuarioAtual) {
-            const rota = usuarioAtual.role === 'embarcador'
-                ? 'para-embarcadores.html'
-                : usuarioAtual.role === 'destinatario'
-                    ? 'para-destinatarios.html'
-                    : 'para-caminhoneiros.html';
-            window.location.href = rota;
+        if (usuarioAtual && usuarioAtual.role !== 'caminhoneiro') {
+            localStorage.removeItem('freteConectaCurrentUser');
+        }
+
+        if (usuarioAtual && usuarioAtual.role === 'caminhoneiro') {
+            window.location.href = 'para-caminhoneiros.html';
         }
 
         function mostrarSenha() {

@@ -436,7 +436,7 @@
       <nav aria-label="Menu principal">
         <a href="index.html">Início</a>
         <a href="para-caminhoneiros.html">Para caminhoneiros</a>
-        <a href="para-embarcadores.html">Para embarcadores</a>
+        <a href="embarcadores-publicar.html">Para embarcadores</a>
         <a href="login.html">Login geral</a>
       </nav>
     </header>
@@ -539,13 +539,12 @@
   <script src="auth.js"></script>
   <script>
     const usuarioAtual = FreteConectaAuth.currentUser();
-    if (usuarioAtual) {
-      const rota = usuarioAtual.role === 'embarcador'
-        ? 'para-embarcadores.html'
-        : usuarioAtual.role === 'destinatario'
-          ? 'para-destinatarios.html'
-          : 'para-caminhoneiros.html';
-      window.location.href = rota;
+    if (usuarioAtual && usuarioAtual.role !== 'embarcador') {
+      localStorage.removeItem('freteConectaCurrentUser');
+    }
+
+    if (usuarioAtual && usuarioAtual.role === 'embarcador') {
+      window.location.href = 'embarcadores-publicar.html';
     }
 
     function mostrarSenha() {
@@ -592,7 +591,7 @@
       mensagem.textContent = '✓ Login realizado com sucesso! Redirecionando...';
 
       setTimeout(() => {
-        window.location.href = 'para-embarcadores.html';
+        window.location.href = FreteConectaAuth.getRoleHome('embarcador');
       }, 1200);
     }
 

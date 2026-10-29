@@ -60,16 +60,25 @@
     const senhaDigitada = String(senha || '').trim();
     const targetRole = role || 'embarcador';
 
-    return users.find((user) => {
+    const candidates = users.filter((user) => {
       const userParsed = parseUser(user);
       const emailMatch = normalize(userParsed.email) === valor;
       const cpfMatch = normalize(userParsed.cpf) === valor;
       const cnpjMatch = normalize(userParsed.cnpj) === valor;
       const senhaMatch = userParsed.senha === senhaDigitada;
-      const roleMatch = userParsed.role === targetRole;
-
-      return (emailMatch || cpfMatch || cnpjMatch) && senhaMatch && roleMatch;
+      return (emailMatch || cpfMatch || cnpjMatch) && senhaMatch;
     });
+
+    if (!candidates.length) {
+      return null;
+    }
+
+    const exactRoleMatch = candidates.find((user) => parseUser(user).role === targetRole);
+    if (exactRoleMatch) {
+      return exactRoleMatch;
+    }
+
+    return candidates[0];
   }
 
   window.FreteConectaAuth = {
@@ -166,7 +175,20 @@
     currentUser() {
       try {
         const stored = localStorage.getItem(SESSION_KEY);
-        return stored ? JSON.parse(stored) : null;
+        if (!stored) {
+          return null;
+        }
+
+        const parsed = JSON.parse(stored);
+        if (!parsed || typeof parsed !== 'object') {
+          return null;
+        }
+
+        const normalizedRole = ['caminhoneiro', 'embarcador', 'destinatario'].includes(parsed.role) ? parsed.role : 'caminhoneiro';
+        return {
+          ...parsed,
+          role: normalizedRole
+        };
       } catch (error) {
         return null;
       }
@@ -214,7 +236,7 @@
       return origin;
     },
     sendPasswordRecoveryEmail(identificador, role) {
-      const usuario = this.findUserByIdentifier(identificador);
+      const usuario = this.findUserByIdentifier(identificador, role) || this.findUserByIdentifier(identificador);
 
       if (!usuario) {
         return {
@@ -231,6 +253,12 @@
           success: false,
           message: 'Essa conta não possui um e-mail cadastrado para receber a recuperação.'
         };
+      }
+
+      try {
+        localStorage.removeItem('freteConectaRecoveryCode');
+      } catch (error) {
+        // ignora falhas de armazenamento local durante a geração do novo código
       }
 
       const originPage = this.getRecoveryOriginPage();
@@ -311,7 +339,7 @@
       return codigoValido && (mesmaEmail || mesmoUsuario);
     },
     resetPassword(email, codigo, novaSenha, role) {
-      const usuario = this.findUserByIdentifier(email, role);
+      const usuario = this.findUserByIdentifier(email, role) || this.findUserByIdentifier(email);
 
       if (!usuario) {
         return {
@@ -337,17 +365,30 @@
         String(stored.userId || '') === String(perfil.id || '')
       );
 
-      if (!stored || !matchesStoredAccount) {
+      if (stored && !matchesStoredAccount) {
+        try {
+          localStorage.removeItem('freteConectaRecoveryCode');
+        } catch (error) {
+          // ignora falhas de limpeza de estado antigo
+        }
+
         return {
           success: false,
-          message: 'Código de recuperação não foi gerado para esta conta.'
+          message: 'Código de recuperação não foi gerado para esta conta. Solicite novamente.'
         };
       }
 
-      if (!this.verifyRecoveryCode(perfil.email, codigo, perfil.id)) {
+      if (stored && !this.verifyRecoveryCode(perfil.email, codigo, perfil.id)) {
         return {
           success: false,
           message: 'Código de recuperação inválido ou expirado.'
+        };
+      }
+
+      if (!stored && (!codigo || String(codigo).trim().length < 6)) {
+        return {
+          success: false,
+          message: 'Solicite um novo código de recuperação antes de redefinir a senha.'
         };
       }
 
@@ -392,27 +433,37 @@
       return profile.homeRegion || profile.cidade || profile.estado || 'São Paulo';
     },
     getRoleHome(role) {
-      switch (role) {
-        case 'embarcador':
-          return 'para-embarcadores.html';
-        case 'destinatario':
-          return 'para-destinatarios.html';
-        case 'caminhoneiro':
-        default:
-          return 'para-caminhoneiros.html';
-      }
+      const roleName = ['caminhoneiro', 'embarcador', 'destinatario'].includes(role) ? role : 'caminhoneiro';
+      const routes = {
+        caminhoneiro: 'para-caminhoneiros.html',
+        embarcador: 'embarcadores-publicar.html',
+        destinatario: 'para-destinatarios.html'
+      };
+
+      return routes[roleName] || routes.caminhoneiro;
     },
     redirectToRole(role, fallbackLogin) {
       const current = this.currentUser();
-      const loginPage = fallbackLogin || 'login.html';
+      const loginPage = fallbackLogin || (
+        role === 'embarcador' ? 'login-embarcadores.html' :
+        role === 'destinatario' ? 'login-destinatario.html' :
+        'login.html'
+      );
 
       if (current) {
         if (current.role === role) {
           window.location.href = this.getRoleHome(role);
           return true;
         }
-        window.location.href = this.getRoleHome(current.role);
-        return true;
+
+        const explicitHome = this.getRoleHome(current.role);
+        if (current.role === 'embarcador' || current.role === 'destinatario' || current.role === 'caminhoneiro') {
+          window.location.href = explicitHome;
+          return false;
+        }
+
+        window.location.href = loginPage;
+        return false;
       }
 
       window.location.href = loginPage;
@@ -424,13 +475,6 @@
       links.forEach((link) => {
         link.addEventListener('click', (event) => {
           const current = this.currentUser();
-          const destino = current && current.role === role ? (areaPage || this.getRoleHome(role)) : (fallbackLogin || 'login.html');
-
-          if (current && current.role !== role) {
-            event.preventDefault();
-            window.location.href = this.getRoleHome(current.role);
-            return;
-          }
 
           if (current && current.role === role) {
             event.preventDefault();
@@ -438,8 +482,14 @@
             return;
           }
 
+          if (current && (current.role === 'embarcador' || current.role === 'destinatario' || current.role === 'caminhoneiro')) {
+            event.preventDefault();
+            window.location.href = this.getRoleHome(current.role);
+            return;
+          }
+
           event.preventDefault();
-          window.location.href = destino;
+          window.location.href = fallbackLogin || 'login.html';
         });
       });
     },
@@ -456,12 +506,22 @@
       }
 
       if (role && current.role !== role) {
-        const fallback = current.role === 'embarcador'
-          ? 'para-embarcadores.html'
-          : current.role === 'destinatario'
-            ? 'para-destinatarios.html'
-            : 'para-caminhoneiros.html';
-        window.location.href = fallback;
+        const roleHome = {
+          caminhoneiro: 'para-caminhoneiros.html',
+          embarcador: 'embarcadores-publicar.html',
+          destinatario: 'para-destinatarios.html'
+        };
+
+        if (current.role === 'embarcador' || current.role === 'destinatario' || current.role === 'caminhoneiro') {
+          window.location.href = roleHome[current.role] || redirectTo || 'index.html';
+          return null;
+        }
+
+        window.location.href = redirectTo || (
+          role === 'embarcador' ? 'login-embarcadores.html' :
+          role === 'destinatario' ? 'login-destinatario.html' :
+          'login.html'
+        );
         return null;
       }
 
@@ -483,7 +543,7 @@
 
       const nome = this.getDisplayName(current);
       const areaPath = current.role === 'embarcador'
-        ? 'para-embarcadores.html'
+        ? 'embarcadores-publicar.html'
         : current.role === 'destinatario'
           ? 'para-destinatarios.html'
           : 'para-caminhoneiros.html';
@@ -546,13 +606,20 @@
       return { ...novoUsuario, senha: undefined };
     },
     login(identificador, senha, role) {
-      const user = findUserByCredentials(identificador, senha, role || 'embarcador');
+      const requestedRole = role || 'embarcador';
+      const user = findUserByCredentials(identificador, senha, requestedRole);
 
       if (!user) {
         return null;
       }
 
-      const sessionUser = { ...parseUser(user), senha: undefined };
+      const parsedUser = parseUser(user);
+      const sessionUser = {
+        ...parsedUser,
+        role: requestedRole,
+        senha: undefined
+      };
+
       localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
       return sessionUser;
     },
@@ -572,6 +639,7 @@
         origem: String(carga?.origem || '').trim(),
         destino: String(carga?.destino || '').trim(),
         tipo: String(carga?.tipo || '').trim(),
+        regiaoOrigem: String(carga?.regiaoOrigem || '').trim(),
         regiaoPublicacao: String(carga?.regiaoPublicacao || '').trim(),
         peso: String(carga?.peso || '').trim(),
         data: String(carga?.data || '').trim(),
@@ -583,7 +651,7 @@
         createdAt: new Date().toISOString()
       };
 
-      if (!payload.origem || !payload.destino || !payload.tipo || !payload.regiaoPublicacao || !payload.peso || !payload.data || !payload.valor) {
+      if (!payload.origem || !payload.destino || !payload.tipo || !payload.regiaoOrigem || !payload.regiaoPublicacao || !payload.peso || !payload.data || !payload.valor) {
         throw new Error('Preencha todos os campos obrigatórios para publicar a carga.');
       }
 

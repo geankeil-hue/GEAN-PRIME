@@ -865,7 +865,7 @@
                     Para caminhoneiros
                 </a>
 
-                <a href="para-embarcadores.html">
+                <a href="embarcadores-publicar.html">
                     Para embarcadores
                 </a>
 
@@ -1257,6 +1257,12 @@
             loginLink: 'login.html',
             redirectAfterLogout: 'index.html'
         });
+
+        const usuarioAtual = FreteConectaAuth.currentUser();
+        const linkEmbarcadores = document.querySelector('a[href="embarcadores-publicar.html"]');
+        if (usuarioAtual && usuarioAtual.role === 'embarcador' && linkEmbarcadores) {
+            linkEmbarcadores.href = 'embarcadores-publicar.html';
+        }
 
         const gruposEstados = {
             'SP': ['São Paulo', 'Campinas', 'Ribeirão Preto', 'Santos', 'São José dos Campos'],
